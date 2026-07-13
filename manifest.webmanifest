@@ -1,0 +1,16 @@
+{
+  "name": "GiảmCân.AI — Theo dõi cân nặng, calo & tập luyện",
+  "short_name": "GiảmCân.AI",
+  "description": "Theo dõi cân nặng, calo, thực đơn và lịch tập cá nhân hóa mỗi ngày",
+  "lang": "vi",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f6f7f5",
+  "theme_color": "#0e8f63",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

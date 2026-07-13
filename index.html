@@ -1,0 +1,1579 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#0e8f63">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="GiảmCân.AI">
+</head>
+<body>
+<title>Giảm Cân Thông Minh — Theo dõi cân nặng & calo</title>
+<style>
+:root{
+  --bg:#f6f7f5; --surface:#fcfcfb; --ink:#12130f; --ink-2:#52514e; --muted:#898781;
+  --line:#e3e2da; --grid:#e1e0d9; --axis:#c3c2b7;
+  --accent:#0e8f63; --accent-ink:#0a7250; --accent-soft:#e3f3ec;
+  --blue:#2a78d6; --blue-soft:#cde2fb;
+  --good:#0ca30c; --good-text:#006300; --warn:#b97700; --serious:#c05a2e; --critical:#d03b3b;
+  --ring:rgba(11,11,11,.10); --shadow:0 1px 2px rgba(11,11,11,.05),0 4px 14px rgba(11,11,11,.05);
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0d0d0d; --surface:#1a1a19; --ink:#f4f4ef; --ink-2:#c3c2b7; --muted:#898781;
+    --line:#2c2c2a; --grid:#2c2c2a; --axis:#383835;
+    --accent:#25b581; --accent-ink:#4fd0a0; --accent-soft:#12291f;
+    --blue:#3987e5; --blue-soft:#16304f;
+    --good:#0ca30c; --good-text:#3ecf3e; --warn:#fab219; --serious:#ec835a; --critical:#e05555;
+    --ring:rgba(255,255,255,.10); --shadow:none;
+  }
+}
+:root[data-theme="light"]{
+  --bg:#f6f7f5; --surface:#fcfcfb; --ink:#12130f; --ink-2:#52514e; --muted:#898781;
+  --line:#e3e2da; --grid:#e1e0d9; --axis:#c3c2b7;
+  --accent:#0e8f63; --accent-ink:#0a7250; --accent-soft:#e3f3ec;
+  --blue:#2a78d6; --blue-soft:#cde2fb;
+  --good:#0ca30c; --good-text:#006300; --warn:#b97700; --serious:#c05a2e; --critical:#d03b3b;
+  --ring:rgba(11,11,11,.10); --shadow:0 1px 2px rgba(11,11,11,.05),0 4px 14px rgba(11,11,11,.05);
+}
+:root[data-theme="dark"]{
+  --bg:#0d0d0d; --surface:#1a1a19; --ink:#f4f4ef; --ink-2:#c3c2b7; --muted:#898781;
+  --line:#2c2c2a; --grid:#2c2c2a; --axis:#383835;
+  --accent:#25b581; --accent-ink:#4fd0a0; --accent-soft:#12291f;
+  --blue:#3987e5; --blue-soft:#16304f;
+  --good:#0ca30c; --good-text:#3ecf3e; --warn:#fab219; --serious:#ec835a; --critical:#e05555;
+  --ring:rgba(255,255,255,.10); --shadow:none;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg)}
+body{
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  color:var(--ink); line-height:1.55; -webkit-font-smoothing:antialiased;
+}
+.app{max-width:760px;margin:0 auto;padding:0 16px 96px}
+header.top{padding:22px 2px 10px;display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{font-size:1.25rem;font-weight:800;letter-spacing:-.02em}
+.brand .dot{color:var(--accent)}
+.top .date{color:var(--muted);font-size:.85rem}
+nav.tabs{
+  position:sticky;top:0;z-index:30;display:flex;gap:4px;overflow-x:auto;
+  background:var(--bg);padding:8px 0 10px;scrollbar-width:none;
+}
+nav.tabs::-webkit-scrollbar{display:none}
+.tab{
+  border:1px solid var(--line);background:var(--surface);color:var(--ink-2);
+  padding:7px 13px;border-radius:999px;font-size:.86rem;font-weight:600;cursor:pointer;
+  white-space:nowrap;transition:background .15s,color .15s;
+}
+.tab:hover{color:var(--ink)}
+.tab.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tab:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+main section{display:none}
+main section.on{display:block;animation:fade .18s ease}
+@keyframes fade{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){main section.on{animation:none}}
+.card{background:var(--surface);border:1px solid var(--ring);border-radius:var(--r);padding:16px;margin:12px 0;box-shadow:var(--shadow)}
+.card h2{font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700;margin-bottom:10px}
+.card h3{font-size:1rem;margin-bottom:6px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:560px){.grid4{grid-template-columns:repeat(2,1fr)}}
+.stat{background:var(--surface);border:1px solid var(--ring);border-radius:var(--r);padding:13px 14px;box-shadow:var(--shadow)}
+.stat .lbl{font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:700}
+.stat .val{font-size:1.55rem;font-weight:800;letter-spacing:-.02em;margin-top:2px}
+.stat .sub{font-size:.78rem;color:var(--ink-2)}
+.up{color:var(--critical)} .down{color:var(--good-text)} .flat{color:var(--ink-2)}
+label{display:block;font-size:.8rem;font-weight:600;color:var(--ink-2);margin:10px 0 4px}
+input,select{
+  width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;
+  background:var(--bg);color:var(--ink);font-size:1rem;font-family:inherit;
+}
+input[type=number]{font-variant-numeric:tabular-nums}
+button.btn{
+  background:var(--accent);color:#fff;border:none;border-radius:10px;padding:11px 18px;
+  font-size:.95rem;font-weight:700;cursor:pointer;font-family:inherit;
+}
+button.btn:hover{background:var(--accent-ink)}
+button.ghost{background:transparent;color:var(--ink-2);border:1px solid var(--line)}
+button.ghost:hover{background:var(--bg);color:var(--ink)}
+button.danger{background:transparent;color:var(--critical);border:1px solid var(--critical)}
+.row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.row>div{flex:1;min-width:110px}
+.chartwrap{position:relative;margin-top:6px}
+.chartwrap svg{display:block;width:100%;height:auto}
+.tip{
+  position:absolute;pointer-events:none;background:var(--ink);color:var(--bg);
+  font-size:.78rem;padding:6px 9px;border-radius:8px;white-space:nowrap;opacity:0;
+  transform:translate(-50%,-115%);transition:opacity .1s;font-variant-numeric:tabular-nums;z-index:5;
+}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:.78rem;color:var(--ink-2);margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:10px;height:10px;border-radius:3px;display:inline-block}
+ul.log{list-style:none}
+ul.log li{display:flex;justify-content:space-between;align-items:center;padding:9px 2px;border-bottom:1px solid var(--line);font-size:.92rem;gap:8px}
+ul.log li:last-child{border-bottom:none}
+ul.log .kcal{font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
+ul.log .meta{color:var(--muted);font-size:.78rem}
+.del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;padding:4px 8px;border-radius:6px}
+.del:hover{color:var(--critical);background:var(--bg)}
+.foodsearch{position:relative}
+.foodlist{
+  position:absolute;left:0;right:0;top:100%;z-index:20;background:var(--surface);
+  border:1px solid var(--line);border-radius:12px;max-height:260px;overflow:auto;
+  box-shadow:0 10px 30px rgba(0,0,0,.15);display:none;
+}
+.foodlist.open{display:block}
+.foodlist button{
+  display:flex;justify-content:space-between;width:100%;background:none;border:none;
+  padding:10px 14px;font-size:.92rem;cursor:pointer;color:var(--ink);text-align:left;font-family:inherit;gap:10px;
+}
+.foodlist button:hover{background:var(--bg)}
+.foodlist .k{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.budget{margin:14px 0 4px}
+.budget .bar{height:14px;border-radius:7px;background:var(--line);overflow:hidden;position:relative}
+.budget .fill{height:100%;border-radius:7px;background:var(--accent);transition:width .3s}
+.budget .fill.over{background:var(--critical)}
+.budget .nums{display:flex;justify-content:space-between;font-size:.8rem;color:var(--ink-2);margin-top:5px;font-variant-numeric:tabular-nums}
+.advice{list-style:none}
+.advice li{display:flex;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);font-size:.93rem;align-items:flex-start}
+.advice li:last-child{border-bottom:none}
+.advice .ic{flex:none;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;margin-top:1px}
+.ic.ok{background:var(--accent-soft);color:var(--good-text)}
+.ic.warn{background:rgba(250,178,25,.16);color:var(--warn)}
+.ic.bad{background:rgba(208,59,59,.13);color:var(--critical)}
+.ic.info{background:var(--blue-soft);color:var(--blue)}
+.pill{display:inline-block;font-size:.72rem;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink)}
+.study{border-left:3px solid var(--accent);padding-left:13px;margin:16px 0}
+.study h3{font-size:.98rem}
+.study .src{font-size:.78rem;color:var(--muted);margin-bottom:4px}
+.study p{font-size:.9rem;color:var(--ink-2)}
+.study .me{margin-top:6px;font-size:.88rem;background:var(--accent-soft);color:var(--accent-ink);padding:7px 11px;border-radius:9px;display:inline-block}
+.note{font-size:.8rem;color:var(--muted);margin-top:10px}
+.empty{color:var(--muted);font-size:.9rem;padding:18px 0;text-align:center}
+.bignum{font-size:2.1rem;font-weight:800;letter-spacing:-.03em}
+.kv{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:.92rem}
+.kv:last-child{border-bottom:none}
+.kv b{font-variant-numeric:tabular-nums}
+.onboard{max-width:520px;margin:30px auto}
+.hidden{display:none!important}
+.toast{
+  position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);
+  padding:10px 18px;border-radius:999px;font-size:.88rem;font-weight:600;opacity:0;transition:opacity .25s;z-index:99;pointer-events:none;
+}
+.toast.show{opacity:1}
+table.datatable{width:100%;border-collapse:collapse;font-size:.86rem;margin-top:8px}
+table.datatable th,table.datatable td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+table.datatable td.n{font-variant-numeric:tabular-nums;text-align:right}
+table.datatable th.n{text-align:right}
+details.tbl summary{cursor:pointer;font-size:.8rem;color:var(--muted);margin-top:8px}
+table.daily{min-width:520px}
+table.daily th{font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);white-space:nowrap}
+table.daily td{white-space:nowrap;padding:8px}
+table.daily tr.today td{background:var(--accent-soft);font-weight:700}
+table.daily tr.today td:first-child{border-radius:8px 0 0 8px}
+table.daily tr.today td:last-child{border-radius:0 8px 8px 0}
+.dhead{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap;margin-bottom:6px}
+.dhead .bignum{color:var(--accent-ink)}
+.dhead .sub{font-size:.85rem;color:var(--ink-2)}
+.chg-dn{color:var(--good-text)} .chg-up{color:var(--critical)} .chg-0{color:var(--muted)}
+.wday{background:var(--surface);border:1px solid var(--ring);border-radius:var(--r);padding:15px 16px;margin:10px 0;box-shadow:var(--shadow)}
+.wday.done{border-color:var(--accent);background:linear-gradient(0deg,var(--accent-soft),var(--accent-soft)),var(--surface)}
+.wday .whead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.wday .wd{font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:700}
+.wday h3{font-size:1rem;margin:2px 0 4px}
+.wday .meta{font-size:.8rem;color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.wday ul{margin:6px 0 4px;padding-left:20px;font-size:.9rem;color:var(--ink-2)}
+.wday ul li{margin:3px 0}
+.wday .wnote{font-size:.8rem;color:var(--muted);font-style:italic;margin-top:4px}
+.wday .btn-done{margin-top:10px;background:transparent;border:1.5px solid var(--accent);color:var(--accent-ink);border-radius:999px;padding:7px 16px;font-size:.86rem;font-weight:700;cursor:pointer;font-family:inherit}
+.wlog{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.wlog input{width:86px;padding:7px 9px;font-size:.85rem}
+.wlog .btn-wlog{background:var(--blue);color:#fff;border:none;border-radius:8px;padding:8px 13px;font-size:.83rem;font-weight:700;cursor:pointer;font-family:inherit}
+.wlog .wl-lbl{width:100%;font-size:.78rem;color:var(--muted)}
+.wlogv{margin-top:10px;font-size:.87rem;color:var(--ink-2);background:var(--bg);border-radius:8px;padding:8px 11px}
+.wday.done .btn-done{background:var(--accent);color:#fff}
+.wday.rest{opacity:.85}
+.ppill{display:inline-block;font-size:.68rem;font-weight:800;padding:1px 8px;border-radius:999px;text-transform:none;letter-spacing:0;vertical-align:1px}
+.p-str{background:var(--blue-soft);color:var(--blue)}
+.p-hyp{background:var(--accent-soft);color:var(--accent-ink)}
+.p-end{background:rgba(235,104,52,.14);color:var(--serious)}
+.p-rest{background:var(--line);color:var(--ink-2)}
+.brief-row{display:flex;gap:11px;padding:9px 0;border-bottom:1px solid var(--line);font-size:.93rem;align-items:flex-start}
+.brief-row:last-child{border-bottom:none}
+.brief-row .bic{flex:none;font-size:1.05rem;width:24px;text-align:center;margin-top:1px}
+.brief-row .bv{color:var(--accent-ink);font-weight:800}
+.btn-treat{background:transparent;border:1px dashed var(--warn);color:var(--warn);border-radius:999px;padding:6px 14px;font-size:.83rem;font-weight:700;cursor:pointer;font-family:inherit;margin-top:10px}
+.mmeal{padding:9px 0;border-bottom:1px solid var(--line)}
+.mmeal:last-of-type{border-bottom:none}
+.mname{font-weight:700;font-size:.92rem;margin-bottom:3px}
+.mitem{display:flex;justify-content:space-between;gap:10px;font-size:.88rem;color:var(--ink-2);padding:2px 0 2px 8px}
+.mitem .mk{font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--muted)}
+.mtotal{display:flex;justify-content:space-between;padding:10px 0 2px;font-size:.95rem;font-weight:800}
+.mfit{font-size:.82rem;margin-top:2px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:2px}
+.chips label{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:.85rem;margin:0;color:var(--ink);background:var(--bg);cursor:pointer;font-weight:500}
+.chips input{width:auto;accent-color:var(--accent);margin:0}
+.chips label:has(input:checked){border-color:var(--accent);background:var(--accent-soft);color:var(--accent-ink)}
+.treat-banner{background:rgba(250,178,25,.12);border:1px solid rgba(250,178,25,.4);color:var(--warn);border-radius:10px;padding:10px 13px;font-size:.9rem;margin:12px 0 4px}
+</style>
+
+<div class="app" id="app">
+  <header class="top">
+    <div class="brand">GiảmCân<span class="dot">.AI</span></div>
+    <div class="date" id="todayLabel"></div>
+  </header>
+
+  <!-- ONBOARDING -->
+  <div id="onboard" class="onboard hidden">
+    <div class="card">
+      <h2>Bắt đầu — Hồ sơ của bạn</h2>
+      <p style="font-size:.9rem;color:var(--ink-2)">Các thông số này dùng cho công thức Mifflin-St Jeor để tính năng lượng trao đổi chất cơ bản (BMR) và lên kế hoạch calo cá nhân hóa.</p>
+      <div class="row">
+        <div><label>Giới tính</label>
+          <select id="ob_sex"><option value="m">Nam</option><option value="f">Nữ</option></select></div>
+        <div><label>Năm sinh</label><input id="ob_yob" type="number" placeholder="1995" min="1920" max="2020"></div>
+      </div>
+      <div class="row">
+        <div><label>Chiều cao (cm)</label><input id="ob_h" type="number" placeholder="168" min="120" max="230"></div>
+        <div><label>Cân nặng hiện tại (kg)</label><input id="ob_w" type="number" step="0.1" placeholder="72.5" min="30" max="250"></div>
+      </div>
+      <label>Mục đích tập luyện</label>
+      <select id="ob_tgoal">
+        <option value="cut" selected>Giữ cơ + giảm mỡ (kèm sức bền)</option>
+        <option value="bulk">Tăng cơ</option>
+        <option value="endurance">Tăng sức bền</option>
+      </select>
+      <div class="row">
+        <div><label>Cân nặng mục tiêu (kg)</label><input id="ob_goal" type="number" step="0.1" placeholder="65"></div>
+        <div><label>Tốc độ mong muốn</label>
+          <select id="ob_rate">
+            <option value="0.25">Chậm & chắc — 0,25 kg/tuần</option>
+            <option value="0.5" selected>Khuyến nghị — 0,5 kg/tuần</option>
+            <option value="0.75">Nhanh — 0,75 kg/tuần</option>
+            <option value="1">Tối đa an toàn — 1 kg/tuần</option>
+          </select></div>
+      </div>
+      <div style="margin-top:16px"><button class="btn" id="ob_save" style="width:100%">Tạo kế hoạch của tôi</button></div>
+    </div>
+  </div>
+
+  <div id="mainui" class="hidden">
+  <nav class="tabs" id="tabs">
+    <button class="tab on" data-t="home">Tổng quan</button>
+    <button class="tab" data-t="weight">Cân nặng</button>
+    <button class="tab" data-t="food">Ăn uống</button>
+    <button class="tab" data-t="workout">Tập luyện</button>
+    <button class="tab" data-t="plan">Phân tích AI</button>
+    <button class="tab" data-t="science">Khoa học</button>
+    <button class="tab" data-t="profile">Hồ sơ</button>
+  </nav>
+
+  <main>
+    <!-- HOME -->
+    <section id="s-home" class="on">
+      <div class="card" style="border-left:4px solid var(--accent)">
+        <h2 id="briefTitle">☀️ Bản tin hôm nay</h2>
+        <div id="briefBody"></div>
+        <p class="note">Mở app mỗi sáng ngay sau khi cân để nhận bản tin này với số liệu mới nhất.</p>
+      </div>
+      <div class="card">
+        <h2>Phân tích theo từng ngày</h2>
+        <div id="dailyHead"></div>
+        <div style="overflow-x:auto"><table class="datatable daily" id="dailyTable"></table></div>
+        <p class="note">Mục tiêu calo được <b>tính lại cho từng ngày</b> từ cân nặng và dữ liệu ăn uống đến đúng ngày đó — cân nặng thay đổi thì con số hôm sau tự thay đổi theo.</p>
+      </div>
+      <div class="grid4" id="homeStats"></div>
+      <div class="card">
+        <h2>Calo hôm nay</h2>
+        <div class="budget" id="homeBudget"></div>
+      </div>
+      <div class="card">
+        <h2>Xu hướng cân nặng · 30 ngày</h2>
+        <div class="chartwrap" id="homeChart"></div>
+      </div>
+      <div class="card">
+        <h2>Lời khuyên nhanh</h2>
+        <ul class="advice" id="homeAdvice"></ul>
+      </div>
+    </section>
+
+    <!-- WEIGHT -->
+    <section id="s-weight">
+      <div class="card">
+        <h2>Ghi cân nặng</h2>
+        <div class="row">
+          <div><label>Ngày</label><input type="date" id="w_date"></div>
+          <div><label>Cân nặng (kg)</label><input type="number" id="w_kg" step="0.1" placeholder="72.4" inputmode="decimal"></div>
+          <div style="flex:0"><button class="btn" id="w_add">Lưu</button></div>
+        </div>
+        <div id="w_feedback" style="margin-top:12px"></div>
+        <p class="note">Mẹo: cân mỗi sáng sau khi đi vệ sinh, trước khi ăn — nghiên cứu cho thấy cân hằng ngày giúp giảm cân hiệu quả hơn (xem tab Khoa học).</p>
+      </div>
+      <div class="card">
+        <h2>Biểu đồ cân nặng · 90 ngày</h2>
+        <div class="chartwrap" id="weightChart"></div>
+        <div class="legend">
+          <span><span class="sw" style="background:var(--blue);opacity:.45;border-radius:50%"></span>Cân đo hằng ngày</span>
+          <span><span class="sw" style="background:var(--blue);height:3px;border-radius:2px"></span>Trung bình 7 ngày (xu hướng thật)</span>
+        </div>
+        <details class="tbl"><summary>Xem dạng bảng</summary><div id="weightTable"></div></details>
+      </div>
+      <div class="card">
+        <h2>Lịch sử gần đây</h2>
+        <ul class="log" id="weightLog"></ul>
+      </div>
+    </section>
+
+    <!-- FOOD -->
+    <section id="s-food">
+      <div class="card" style="border-left:4px solid var(--accent)">
+        <h2>🍽️ Thực đơn gợi ý hôm nay</h2>
+        <div id="menuBody"></div>
+        <div class="row" style="margin-top:12px">
+          <div style="flex:0"><button class="btn" id="m_log">➕ Ghi cả thực đơn vào nhật ký</button></div>
+          <div style="flex:0"><button class="btn ghost" id="m_shuffle">🔄 Đổi món</button></div>
+        </div>
+        <p class="note">Chỉ dùng đồ bạn có sẵn: trứng, bánh mì sandwich, cơm, gà / bò / thịt lợn (xoay vòng theo ngày), whey, sữa cao đạm, sữa Vinamilk, sữa chua, chuối — tự cân khẩu phần khớp mục tiêu calo + đạm. Rau được giữ lại vì cần chất xơ (loại nào cũng được). Ăn khác đi cũng không sao — ghi lại đúng là được.</p>
+      </div>
+      <div class="card">
+        <h2>Thêm món ăn</h2>
+        <label>Ngày</label><input type="date" id="f_date">
+        <label>Tìm món (gõ để tìm trong ~70 món Việt phổ biến)</label>
+        <div class="foodsearch">
+          <input type="text" id="f_search" placeholder="phở, cơm tấm, trà sữa…" autocomplete="off">
+          <div class="foodlist" id="f_list"></div>
+        </div>
+        <div class="row">
+          <div><label>Tên món</label><input type="text" id="f_name" placeholder="Tên món"></div>
+          <div><label>Calo / phần</label><input type="number" id="f_kcal" placeholder="450" inputmode="numeric"></div>
+          <div><label>Số phần</label><input type="number" id="f_qty" value="1" step="0.5" min="0.25"></div>
+        </div>
+        <div style="margin-top:12px"><button class="btn" id="f_add">Thêm vào nhật ký</button></div>
+      </div>
+      <div class="card">
+        <h2 id="f_dayTitle">Nhật ký hôm nay</h2>
+        <div id="treatArea"></div>
+        <div class="budget" id="foodBudget"></div>
+        <ul class="log" id="foodLog"></ul>
+        <button class="btn-treat" id="t_toggle"></button>
+        <p class="note">Ăn ngoài / tiệc tùng không đếm được calo? Đánh dấu <b>ngày treat</b> — app sẽ ước lượng ngày đó ≈ mức ăn trung bình của bạn + 600 kcal khi tính trao đổi chất, thay vì bỏ trống làm sai số liệu.</p>
+      </div>
+      <div class="card">
+        <h2>Calo nạp vào · 14 ngày</h2>
+        <div class="chartwrap" id="calChart"></div>
+        <div class="legend">
+          <span><span class="sw" style="background:var(--blue)"></span>Calo đã ăn</span>
+          <span><span class="sw" style="background:transparent;border-top:2px dashed var(--muted);height:0;border-radius:0"></span>Mục tiêu</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- WORKOUT -->
+    <section id="s-workout">
+      <div class="card" style="border-left:4px solid var(--blue)">
+        <h2>Tuần này của bạn</h2>
+        <div id="wk_summary"></div>
+      </div>
+      <div class="card">
+        <h2>Vùng nhịp tim của bạn — dùng với đồng hồ</h2>
+        <div id="wk_zones"></div>
+        <p class="note">Nhịp tim tối đa ước tính theo công thức Tanaka (208 − 0,7 × tuổi) — chính xác hơn công thức "220 − tuổi" cũ. Phần lớn thời gian cardio nên nằm ở Vùng 2.</p>
+      </div>
+      <div id="wk_plan"></div>
+      <p class="note">💡 Không cần cộng calo tập luyện vào ngân sách ăn: TDEE thích ứng của app đã tự "hấp thụ" năng lượng bạn đốt thông qua dữ liệu cân nặng thực tế — cộng tay sẽ bị tính trùng 2 lần.</p>
+    </section>
+
+    <!-- PLAN / AI -->
+    <section id="s-plan">
+      <div class="card" style="border-left:4px solid var(--accent)">
+        <h2>Mục tiêu calo hôm nay của bạn</h2>
+        <div class="bignum" id="p_target">—</div>
+        <div id="p_targetSub" style="font-size:.88rem;color:var(--ink-2)"></div>
+      </div>
+      <div class="card">
+        <h2>Máy phân tích năng lượng</h2>
+        <div id="p_energy"></div>
+        <p class="note" id="p_confNote"></p>
+      </div>
+      <div class="card">
+        <h2>Phân tích & lời khuyên</h2>
+        <ul class="advice" id="p_advice"></ul>
+      </div>
+      <div class="card">
+        <h2>Dự báo lộ trình</h2>
+        <div id="p_forecast"></div>
+      </div>
+      <p class="note">⚕️ Ứng dụng chỉ mang tính tham khảo, không thay thế tư vấn của bác sĩ hoặc chuyên gia dinh dưỡng — đặc biệt nếu bạn có bệnh nền, đang mang thai, hoặc BMI &lt; 18,5.</p>
+    </section>
+
+    <!-- SCIENCE -->
+    <section id="s-science">
+      <div class="card">
+        <h2>Cơ sở khoa học — cá nhân hóa cho bạn</h2>
+        <p style="font-size:.9rem;color:var(--ink-2)">Mọi con số ứng dụng đưa ra đều dựa trên các nghiên cứu dưới đây và được tính lại theo tuổi, chiều cao, cân nặng, dữ liệu ăn uống thực tế của bạn.</p>
+        <div id="scienceCards"></div>
+      </div>
+    </section>
+
+    <!-- PROFILE -->
+    <section id="s-profile">
+      <div class="card">
+        <h2>Hồ sơ</h2>
+        <div class="row">
+          <div><label>Giới tính</label><select id="pr_sex"><option value="m">Nam</option><option value="f">Nữ</option></select></div>
+          <div><label>Năm sinh</label><input id="pr_yob" type="number"></div>
+        </div>
+        <div class="row">
+          <div><label>Chiều cao (cm)</label><input id="pr_h" type="number"></div>
+          <div><label>Cân nặng mục tiêu (kg)</label><input id="pr_goal" type="number" step="0.1"></div>
+        </div>
+        <label>Mục đích tập luyện</label>
+        <select id="pr_tgoal">
+          <option value="cut">Giữ cơ + giảm mỡ (kèm sức bền)</option>
+          <option value="bulk">Tăng cơ</option>
+          <option value="endurance">Tăng sức bền</option>
+        </select>
+        <label>Nơi tập</label>
+        <select id="pr_place"><option value="gym">Phòng gym</option><option value="home">Tại nhà</option></select>
+        <div id="equipWrap">
+          <label>Thiết bị có sẵn ở nhà — lịch tập chỉ dùng đồ bạn tick</label>
+          <div class="chips" id="pr_equip">
+            <label><input type="checkbox" data-k="barbell"> Giá squat + thanh đòn + ghế</label>
+            <label><input type="checkbox" data-k="dumbbell"> Tạ đơn</label>
+            <label><input type="checkbox" data-k="pullup"> Khung xà</label>
+            <label><input type="checkbox" data-k="treadmill"> Máy chạy bộ</label>
+            <label><input type="checkbox" data-k="bike"> Máy đạp xe</label>
+          </div>
+          <p class="note" style="margin-top:6px">Không tick gì = lịch tập với trọng lượng cơ thể (hít đất, squat không tạ…).</p>
+        </div>
+        <p class="note hidden" id="gymNote" style="margin-top:6px">🏋️ Phòng gym — mặc định có đủ thiết bị, không cần khai báo.</p>
+        <label>Đồ ăn thường có — thực đơn chỉ dùng món bạn tick</label>
+        <div class="chips" id="pr_foods">
+          <label><input type="checkbox" data-k="trung"> Trứng</label>
+          <label><input type="checkbox" data-k="sandwich"> Bánh mì sandwich</label>
+          <label><input type="checkbox" data-k="com"> Cơm trắng</label>
+          <label><input type="checkbox" data-k="ga"> Thịt gà</label>
+          <label><input type="checkbox" data-k="bo"> Thịt bò</label>
+          <label><input type="checkbox" data-k="lon"> Thịt lợn</label>
+          <label><input type="checkbox" data-k="tom"> Tôm</label>
+          <label><input type="checkbox" data-k="ca"> Cá</label>
+          <label><input type="checkbox" data-k="whey"> Whey</label>
+          <label><input type="checkbox" data-k="suaHP"> Sữa cao đạm</label>
+          <label><input type="checkbox" data-k="suaCD"> Sữa có đường</label>
+          <label><input type="checkbox" data-k="scVNM"> Sữa chua</label>
+          <label><input type="checkbox" data-k="chuoi"> Chuối</label>
+          <label><input type="checkbox" data-k="khoai"> Khoai lang</label>
+          <label><input type="checkbox" data-k="yen"> Yến mạch</label>
+        </div>
+        <label>Tốc độ mục tiêu</label>
+        <select id="pr_rate">
+          <option value="0.25">0,25 kg/tuần</option><option value="0.5">0,5 kg/tuần</option>
+          <option value="0.75">0,75 kg/tuần</option><option value="1">1 kg/tuần</option>
+        </select>
+        <div style="margin-top:14px"><button class="btn" id="pr_save">Lưu hồ sơ</button></div>
+      </div>
+      <div class="card">
+        <h2>Dữ liệu</h2>
+        <p style="font-size:.88rem;color:var(--ink-2)">Toàn bộ dữ liệu lưu ngay trên thiết bị này (không gửi đi đâu). Hãy xuất file dự phòng định kỳ.</p>
+        <div class="row" style="margin-top:10px">
+          <div style="flex:0"><button class="btn ghost" id="d_export">⬇ Xuất dữ liệu</button></div>
+          <div style="flex:0"><button class="btn ghost" id="d_import">⬆ Nhập dữ liệu</button></div>
+          <div style="flex:0"><button class="btn danger" id="d_wipe">Xóa tất cả</button></div>
+        </div>
+        <input type="file" id="d_file" accept=".json" class="hidden">
+      </div>
+    </section>
+  </main>
+  </div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+/* ---------- storage (localStorage with in-memory fallback) ---------- */
+var mem={};
+var store={
+  get:function(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return (k in mem)?mem[k]:d}},
+  set:function(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){mem[k]=v}}
+};
+var KP="gc_profile",KW="gc_weights",KF="gc_foods",KWO="gc_workouts",KT="gc_treats";
+var profile=store.get(KP,null);
+var weights=store.get(KW,[]);   // [{d:'2026-07-13', kg:72.4}]
+var foods=store.get(KF,[]);     // [{d, name, kcal, qty}]
+var workouts=store.get(KWO,[]); // [{d, key, kcal}]
+var treats=store.get(KT,[]);    // ['2026-07-12', ...] ngày ăn ngoài không tracking
+function isTreat(d){return treats.indexOf(d)>=0}
+var DEF_EQUIP={barbell:true,pullup:true,treadmill:true};
+var GYM_EQUIP={barbell:true,dumbbell:true,pullup:true,treadmill:true,bike:true}; // phòng gym: đủ đồ
+var DEF_FOODS={trung:true,sandwich:true,com:true,ga:true,bo:true,lon:true,whey:true,suaHP:true,suaCD:true,scVNM:true,chuoi:true};
+// migration: hồ sơ cũ (trước khi bỏ mức vận động) được gán mặc định mới
+if(profile){
+  if(!profile.tgoal)profile.tgoal="cut";
+  if(!profile.place)profile.place="gym";
+  if(!profile.equip)profile.equip=JSON.parse(JSON.stringify(DEF_EQUIP));
+  if(!profile.foods)profile.foods=JSON.parse(JSON.stringify(DEF_FOODS));
+}
+
+/* ---------- food database (kcal per typical serving) ---------- */
+var DB=[
+["Phở bò (1 tô)",450],["Phở gà (1 tô)",400],["Bún bò Huế (1 tô)",480],["Bún riêu (1 tô)",420],
+["Bún chả (1 phần)",550],["Bún thịt nướng (1 tô)",480],["Hủ tiếu (1 tô)",410],["Mì Quảng (1 tô)",530],
+["Bánh canh (1 tô)",430],["Cháo gà (1 tô)",250],["Cháo trắng (1 tô)",150],["Miến gà (1 tô)",330],
+["Cơm trắng (1 chén)",200],["Cơm tấm sườn bì chả (1 dĩa)",600],["Cơm gà (1 dĩa)",550],["Cơm chiên dương châu (1 dĩa)",650],
+["Cơm rang trứng (1 dĩa)",520],["Xôi mặn (1 gói)",550],["Xôi đậu xanh (1 gói)",400],
+["Bánh mì thịt (1 ổ)",400],["Bánh mì trứng (1 ổ)",350],["Bánh mì chảo (1 phần)",550],
+["Bánh cuốn (1 dĩa)",320],["Bánh bao (1 cái)",280],["Bánh xèo (1 cái)",350],["Bánh tráng trộn (1 bịch)",330],
+["Gỏi cuốn (1 cuốn)",100],["Chả giò (1 cái)",120],["Bột chiên (1 dĩa)",450],["Súp cua (1 chén)",180],
+["Mì tôm (1 gói)",350],["Mì xào bò (1 dĩa)",600],["Bò né (1 phần)",500],["Bò kho + bánh mì (1 phần)",560],
+["Thịt heo kho (100g)",290],["Thịt luộc (100g)",240],["Cá kho (100g)",180],["Cá hấp/nướng (100g)",140],
+["Ức gà luộc/áp chảo (100g)",165],["Đùi gà chiên (1 cái)",280],["Trứng chiên (1 quả)",120],["Trứng luộc (1 quả)",78],
+["Đậu hũ (100g)",76],["Đậu hũ chiên (100g)",190],["Tôm hấp (100g)",99],["Ốc luộc (1 dĩa)",200],
+["Rau luộc (1 dĩa)",50],["Rau muống xào tỏi (1 dĩa)",150],["Canh chua (1 chén)",100],["Canh rau (1 chén)",60],
+["Salad trộn dầu giấm (1 dĩa)",120],["Khoai lang luộc (100g)",86],["Bắp luộc (1 trái)",130],
+["Chuối (1 trái)",105],["Táo (1 trái)",95],["Cam (1 trái)",62],["Ổi (1 trái)",68],["Xoài (1 trái)",150],
+["Bơ (1/2 trái)",160],["Dưa hấu (1 miếng)",50],["Thanh long (1/2 trái)",60],
+["Sữa chua không đường (1 hộp)",60],["Sữa chua có đường (1 hộp)",105],["Sữa tươi không đường (200ml)",122],
+["Sữa tươi có đường (200ml)",150],["Hạt điều/hạnh nhân (30g)",170],
+["Cà phê đen (1 ly)",5],["Cà phê sữa (1 ly)",130],["Bạc xỉu (1 ly)",180],["Trà sữa trân châu (1 ly)",350],
+["Nước cam (1 ly)",110],["Sinh tố bơ (1 ly)",300],["Nước ngọt (1 lon)",140],["Bia (1 lon)",150],
+["Chè (1 ly)",250],["Kem (1 cây)",200],["Bánh ngọt (1 cái)",300],["Bánh quy (3 cái)",150],["Snack (1 gói)",150],
+["Lẩu (1 phần ăn)",700],["Đồ nướng BBQ (1 phần)",800],["Gà rán (1 miếng)",320],["Pizza (1 miếng)",280],["Hamburger (1 cái)",500],
+["Whey protein (1 muỗng 30g)",120],["Sữa cao đạm Vinamilk (1 hộp 180ml)",120],["Sữa Vinamilk có đường (1 hộp 180ml)",140],
+["Sữa chua Vinamilk (1 hộp)",105],["Bánh mì sandwich (1 lát)",75],
+["Thịt bò nạc xào/áp chảo (100g)",182],["Yến mạch nấu sữa (40g)",150],["Khoai lang luộc (150g)",130]
+];
+
+/* ---------- date helpers ---------- */
+function pad(n){return n<10?"0"+n:""+n}
+function toStr(dt){return dt.getFullYear()+"-"+pad(dt.getMonth()+1)+"-"+pad(dt.getDate())}
+function today(){return toStr(new Date())}
+function parseD(s){var p=s.split("-");return new Date(+p[0],+p[1]-1,+p[2])}
+function fmtShort(s){var p=s.split("-");return p[2]+"/"+p[1]}
+function fmtFull(s){var p=s.split("-");return p[2]+"/"+p[1]+"/"+p[0]}
+function addDays(s,n){var d=parseD(s);d.setDate(d.getDate()+n);return toStr(d)}
+function daysBetween(a,b){return Math.round((parseD(b)-parseD(a))/86400000)}
+function r1(x){return Math.round(x*10)/10}
+function fmtN(x){return Math.round(x).toLocaleString("vi-VN")}
+
+/* ---------- core computations ---------- */
+function age(){return profile?new Date().getFullYear()-profile.yob:30}
+/* upTo (optional): only use data up to that date — lets every metric be recomputed "as of" any day */
+function latestKg(upTo){
+  var s=sortedW();if(upTo)s=s.filter(function(w){return w.d<=upTo});
+  return s.length?s[s.length-1].kg:(profile?profile.w0:0);
+}
+function sortedW(){return weights.slice().sort(function(a,b){return a.d<b.d?-1:1})}
+function bmr(kg){
+  var p=profile;if(!p)return 0;
+  return 10*kg+6.25*p.h-5*age()+(p.sex==="m"?5:-161);
+}
+/* TDEE ước tính ban đầu = BMR × 1,2 (sinh hoạt cơ bản) + calo trung bình/ngày của lịch tập.
+   Không cần hỏi "mức vận động" — lịch tập nói lên điều đó, và TDEE thích ứng sẽ tinh chỉnh tiếp. */
+function tdeeFormula(kg){
+  var wk=0;
+  try{weekPlan().forEach(function(p){wk+=p.kcal||0})}catch(e){}
+  return bmr(kg)*1.2+wk/7;
+}
+/* trend weight: average of last 7 days with data, window ending (base − endOffset) */
+function trendKg(endOffset,base){
+  var s=sortedW();if(!s.length)return null;
+  var end=addDays(base||today(),-(endOffset||0)),start=addDays(end,-6),vals=[];
+  s.forEach(function(w){if(w.d>=start&&w.d<=end)vals.push(w.kg)});
+  if(!vals.length)return null;
+  return vals.reduce(function(a,b){return a+b},0)/vals.length;
+}
+function weeklyRate(){ // kg/week from trend, negative = losing
+  var now=trendKg(0),prev=trendKg(7);
+  if(now==null||prev==null)return null;
+  return now-prev;
+}
+function kcalOfDay(d){
+  var t=0;foods.forEach(function(f){if(f.d===d)t+=f.kcal*f.qty});return t;
+}
+function daysWithFood(from,to){
+  var set={};foods.forEach(function(f){if(f.d>=from&&f.d<=to)set[f.d]=1});return Object.keys(set).sort();
+}
+/* Adaptive TDEE: energy balance over last 21 days of logs (Hall 2011: ~7700 kcal per kg tissue).
+   Ngày treat (ăn ngoài không tracking): ước lượng = mức ăn trung bình + 600 kcal, để không làm TDEE bị thổi phồng. */
+var TREAT_EXTRA=600;
+function adaptiveTDEE(endD){
+  var to=endD||today(),from=addDays(to,-20);
+  var logDays=daysWithFood(from,to).filter(function(d){return !isTreat(d)});
+  var treatDays=treats.filter(function(d){return d>=from&&d<=to});
+  var s=sortedW().filter(function(w){return w.d>=from&&w.d<=to});
+  if(logDays.length<8||s.length<6)return null;
+  var allDays=logDays.concat(treatDays).sort();
+  var first=allDays[0],last=allDays[allDays.length-1];
+  var span=daysBetween(first,last)+1;if(span<10)return null;
+  var intake=0;logDays.forEach(function(d){intake+=kcalOfDay(d)});
+  var avgLogged=intake/logDays.length;
+  var totalIntake=intake+treatDays.length*(avgLogged+TREAT_EXTRA);
+  var avgIntake=totalIntake/(logDays.length+treatDays.length);
+  // weight change: average of first 3 weigh-ins vs last 3 within window
+  function avg(arr){return arr.reduce(function(a,b){return a+b.kg},0)/arr.length}
+  var head=s.slice(0,Math.min(3,s.length)),tail=s.slice(-Math.min(3,s.length));
+  var dKg=avg(tail)-avg(head);
+  var dDays=Math.max(daysBetween(head[Math.floor(head.length/2)].d,tail[Math.floor(tail.length/2)].d),1);
+  var tdee=avgIntake-(dKg*7700)/dDays;
+  var conf=Math.min(1,logDays.length/18);
+  if(tdee<800||tdee>6000)return null; // dữ liệu bất thường
+  return {tdee:tdee,conf:conf,avgIntake:avgIntake,dKg:dKg,days:span,logDays:logDays.length};
+}
+function bestTDEE(endD){
+  var f=tdeeFormula(latestKg(endD)||((profile&&profile.w0)||70)),a=adaptiveTDEE(endD);
+  if(!a)return{tdee:f,src:"formula",conf:0};
+  var blended=a.tdee*a.conf+f*(1-a.conf);
+  return{tdee:blended,src:"adaptive",conf:a.conf,detail:a,formula:f};
+}
+function calTarget(endD){
+  var p=profile;if(!p)return 2000;
+  var t=bestTDEE(endD).tdee,kg=latestKg(endD);
+  var losing=p.goal<kg-0.5;
+  var deficit=losing?p.rate*7700/7:(p.goal>kg+0.5?-p.rate*7700/7:0);
+  var target=t-deficit;
+  var floor=Math.max(p.sex==="m"?1500:1200,bmr(kg)*0.85);
+  if(losing&&target<floor)target=floor;
+  return Math.round(target/10)*10;
+}
+
+/* ---------- workout plan ---------- */
+function hrMax(){return Math.round(208-0.7*age())} // Tanaka 2001
+function hrRange(a,b){var m=hrMax();return Math.round(m*a)+"–"+Math.round(m*b)}
+function z2(){return hrRange(0.6,0.7)+" nhịp/phút"}
+function z4(){return hrRange(0.8,0.9)+" nhịp/phút"}
+function hrZones(){
+  return [
+    ["Vùng 1 · Khởi động / thả lỏng","50–60%",hrRange(0.5,0.6)],
+    ["Vùng 2 · Đốt mỡ bền — cardio chính","60–70%",hrRange(0.6,0.7)],
+    ["Vùng 3 · Sức bền aerobic","70–80%",hrRange(0.7,0.8)],
+    ["Vùng 4 · Ngưỡng — đoạn nhanh HIIT","80–90%",hrRange(0.8,0.9)],
+    ["Vùng 5 · Tối đa — nước rút ngắn","90–100%",hrRange(0.9,1)]
+  ];
+}
+function metKcal(met,min){var kg=latestKg()||70;return Math.round(met*3.5*kg/200*min)}
+var PILLARS={str:["Sức mạnh","p-str"],hyp:["Giữ cơ","p-hyp"],end:["Sức bền","p-end"],rest:["Phục hồi","p-rest"]};
+function pLabel(tag){
+  if(tag==="hyp"&&profile&&profile.tgoal==="bulk")return["Tăng cơ","p-hyp"];
+  return PILLARS[tag];
+}
+/* Lịch tuần sinh tự động từ: mục đích tập luyện + thiết bị có sẵn trong Hồ sơ */
+function weekPlan(){
+  var p=profile||{};
+  var g=p.tgoal||"cut",eq=p.equip||DEF_EQUIP;
+  var hasBar=!!eq.barbell,hasDb=!!eq.dumbbell,hasPu=!!eq.pullup,hasTm=!!eq.treadmill,hasBk=!!eq.bike;
+  function lift(v){
+    var it=[];
+    if(hasBar){
+      if(v==="A")it=["Squat trong giá squat: 4 × 6–8","Đẩy ngực ghế ngang (bench press): 4 × 6–8","Barbell row: 4 × 8–10"];
+      if(v==="B")it=["Deadlift (tạ để sàn): 4 × 5–6 — nặng, kỹ thuật chuẩn","Đẩy vai đứng thanh đòn: 4 × 6–8","Lunge với thanh đòn trên vai (hoặc tay không): 3 × 10 mỗi chân"];
+      if(v==="C")it=["Đẩy ngực ghế ngang: 4 × 8–12","Squat (nhẹ hơn buổi A ~15%): 3 × 10","Barbell row: 4 × 10–12"];
+    }else if(hasDb){
+      if(v==="A")it=["Goblet squat tạ đơn: 4 × 10–12","Đẩy ngực tạ đơn (sàn/ghế): 4 × 10","Chèo tạ đơn: 4 × 10 mỗi bên"];
+      if(v==="B")it=["Romanian deadlift tạ đơn: 4 × 10","Đẩy vai tạ đơn: 4 × 10","Bulgarian split squat: 3 × 10 mỗi chân"];
+      if(v==="C")it=["Đẩy ngực tạ đơn: 4 × 12","Goblet squat: 3 × 12","Chèo tạ đơn: 4 × 12 mỗi bên"];
+    }else{
+      if(v==="A")it=["Hít đất: 4 × tối đa","Squat không tạ: 4 × 20","Chèo ngược mép bàn (inverted row): 4 × 10"];
+      if(v==="B")it=["Bulgarian split squat: 4 × 10 mỗi chân","Pike push-up (vai): 4 × 8–10","Hít đất kê cao chân: 3 × tối đa"];
+      if(v==="C")it=["Vòng lặp × 4: 15 hít đất + 20 squat + 30 giây plank","Nghỉ 90 giây giữa các vòng"];
+    }
+    if(hasPu)it.push(v==="B"?"Chin-up tay hẹp (khung xà): 3 × tối đa":"Kéo xà (khung xà): 3 × tối đa");
+    it.push(v==="B"?(hasPu?"Treo người nâng gối: 3 × 10–12":"Gập bụng: 3 × 15"):"Plank: 3 × 45 giây");
+    return it;
+  }
+  function z2It(m){
+    var dev=hasTm?"máy chạy bộ":(hasBk?"máy đạp xe":"đi bộ nhanh ngoài trời");
+    return ["Khởi động 5 phút nhẹ",(m-10)+" phút giữ nhịp tim "+z2()+" — "+dev,"Thả lỏng 5 phút"];
+  }
+  function hiitIt(){
+    var dev=hasTm?"máy chạy bộ":(hasBk?"máy đạp xe":"tại chỗ (burpee + leo núi)");
+    return ["Khởi động 5 phút nhẹ","8 hiệp: 30 giây nhanh (nhịp tim "+z4()+") / 90 giây chậm — "+dev,"Thả lỏng 4 phút"];
+  }
+  var noteA="Hoàn thành đủ số cái ở mọi hiệp thì buổi sau tăng tạ — tăng dần đều là chìa khóa."+(hasPu?" Chưa kéo xà được? Nhảy lên hạ chậm 3–5 giây mỗi cái.":"");
+  var restA={tag:"rest",title:"Nghỉ chủ động",mins:30,met:3,rest:true,items:["Đi bộ nhẹ 20–30 phút (6.000–8.000 bước)","Giãn cơ 10 phút — hông, vai, gân kheo"]};
+  var restF={tag:"rest",title:"Nghỉ hoàn toàn",mins:0,met:0,rest:true,items:["Ngủ đủ 7–9 tiếng — cơ phục hồi và mỡ 'chịu đi' trong lúc bạn ngủ"]};
+  var days;
+  if(g==="bulk"){
+    days=[
+      {tag:"hyp",title:"Tăng cơ — Toàn thân A",mins:60,met:5,items:lift("A"),note:noteA},
+      {tag:"hyp",title:"Tăng cơ — Toàn thân B",mins:55,met:5,items:lift("B"),note:"Deadlift cách squat ≥ 2 ngày."},
+      restA,
+      {tag:"hyp",title:"Tăng cơ — Toàn thân C",mins:55,met:5,items:lift("C")},
+      {tag:"hyp",title:"Tăng cơ — Toàn thân A (lặp, tăng tạ nếu được)",mins:55,met:5,items:lift("A")},
+      {tag:"end",title:"Cardio nhẹ — Vùng 2",mins:30,met:6,items:z2It(30),note:"Giữ tim mạch khỏe, không ảnh hưởng tăng cơ."},
+      restF
+    ];
+  }else if(g==="endurance"){
+    days=[
+      {tag:"end",title:"Sức bền — Vùng 2",mins:45,met:7,items:z2It(45)},
+      {tag:"hyp",title:"Giữ cơ — Toàn thân A",mins:55,met:5,items:lift("A"),note:noteA},
+      {tag:"end",title:"Sức bền — HIIT",mins:25,met:8,items:hiitIt()},
+      restA,
+      {tag:"end",title:"Sức bền — Vùng 2 dài",mins:60,met:7,items:z2It(60),note:"Buổi nền tảng: chậm mà dài, đừng vượt vùng."},
+      {tag:"hyp",title:"Giữ cơ — Toàn thân B",mins:55,met:5,items:lift("B")},
+      restF
+    ];
+  }else{
+    days=[
+      {tag:"hyp",title:"Giữ cơ — Toàn thân A",mins:60,met:5,items:lift("A"),note:noteA},
+      {tag:"end",title:"Sức bền — Vùng 2",mins:45,met:7,items:z2It(45),note:"Đúng vùng = nói chuyện được nhưng hơi hụt hơi."},
+      {tag:"hyp",title:"Giữ cơ — Toàn thân B",mins:55,met:5,items:lift("B"),note:"Deadlift cách squat ≥ 2 ngày để lưng dưới hồi phục."},
+      restA,
+      {tag:"hyp",title:"Giữ cơ — Toàn thân C (bơm máu 8–12 lần)",mins:55,met:5,items:lift("C"),note:"Gần mỏi hẳn, còn dư 1–2 cái."},
+      {tag:"end",title:"Sức bền — HIIT + Vùng 2",mins:40,met:8,items:hiitIt().concat(["Kết thúc: 15 phút Vùng 2 nhẹ nhàng"])},
+      restF
+    ];
+  }
+  var KEYS=["mon","tue","wed","thu","fri","sat","sun"],DN=["Thứ 2","Thứ 3","Thứ 4","Thứ 5","Thứ 6","Thứ 7","Chủ nhật"];
+  return days.map(function(d,i){
+    return{key:KEYS[i],day:DN[i],tag:d.tag,title:d.title,mins:d.mins,rest:!!d.rest,
+      kcal:d.mins?metKcal(d.met,d.mins):0,items:d.items,note:d.note};
+  });
+}
+var DAY_OFFSET={mon:0,tue:1,wed:2,thu:3,fri:4,sat:5,sun:6};
+function mondayOfWeek(){var t=parseD(today());var dow=(t.getDay()+6)%7;return addDays(today(),-dow)}
+function dateOfKey(key){return addDays(mondayOfWeek(),DAY_OFFSET[key])}
+function isDone(key){var d=dateOfKey(key);return workouts.some(function(w){return w.d===d&&w.key===key})}
+function renderWorkout(){
+  var plan=weekPlan(),mon=mondayOfWeek(),sunD=addDays(mon,6);
+  var thisWeek=workouts.filter(function(w){return w.d>=mon&&w.d<=sunD});
+  var trainDays=plan.filter(function(p){return !p.rest}).length;
+  var doneTrain=thisWeek.filter(function(w){var p=plan.find(function(x){return x.key===w.key});return p&&!p.rest}).length;
+  var kcalSum=thisWeek.reduce(function(a,w){return a+(w.kcal||0)},0);
+  document.getElementById("wk_summary").innerHTML=
+    '<div class="dhead"><span class="bignum" style="color:var(--blue)">'+doneTrain+'/'+trainDays+'</span>'+
+    '<span class="sub">buổi tập chính đã hoàn thành (tuần '+fmtShort(mon)+'–'+fmtShort(sunD)+') · đốt thêm ≈ <b>'+fmtN(kcalSum)+' kcal</b></span></div>'+
+    '<p class="note" style="margin-top:4px">Mục tiêu tối thiểu để giữ cơ khi giảm cân: <b>2–3 buổi tạ/tuần</b>. Calo ước tính theo cân nặng hiện tại của bạn ('+r1(latestKg())+' kg).</p>';
+  document.getElementById("wk_zones").innerHTML=
+    '<div class="kv"><span><b>Nhịp tim tối đa ước tính ('+age()+' tuổi)</b></span><b>'+hrMax()+' nhịp/phút</b></div>'+
+    hrZones().map(function(z){return '<div class="kv"><span>'+z[0]+' <span style="color:var(--muted)">('+z[1]+')</span></span><b>'+z[2]+'</b></div>'}).join("");
+  document.getElementById("wk_plan").innerHTML=plan.map(function(p){
+    var done=isDone(p.key),d=dateOfKey(p.key);
+    var entry=null;workouts.forEach(function(w){if(w.d===d&&w.key===p.key)entry=w});
+    var logHtml="";
+    if(done&&!p.rest){
+      if(entry&&entry.actual){
+        logHtml='<div class="wlogv">⌚ '+(entry.mins?entry.mins+" phút · ":"")+fmtN(entry.kcal||0)+" kcal"+
+          (entry.est?' <span style="color:var(--muted)">(ước tính từ nhịp tim)</span>':"")+
+          (entry.hr?' · ❤️ TB '+entry.hr+' nhịp/phút'+hrFeedback(p,entry.hr):"")+'</div>';
+      }else{
+        logHtml='<div class="wlog"><span class="wl-lbl">⌚ Nhập từ đồng hồ — bỏ trống kcal thì app tự tính từ phút + nhịp tim:</span>'+
+          '<input type="number" class="wl-min" placeholder="phút" inputmode="numeric">'+
+          '<input type="number" class="wl-kcal" placeholder="kcal" inputmode="numeric">'+
+          '<input type="number" class="wl-hr" placeholder="tim TB" inputmode="numeric">'+
+          '<button class="btn-wlog" data-wk="'+p.key+'">Lưu</button></div>';
+      }
+    }
+    return '<div class="wday'+(done?" done":"")+(p.rest?" rest":"")+'">'+
+      '<div class="whead"><div><div class="wd">'+p.day+' · '+fmtShort(d)+' <span class="ppill '+pLabel(p.tag)[1]+'">'+pLabel(p.tag)[0]+'</span></div><h3>'+(done?"✓ ":"")+p.title+'</h3></div>'+
+      (p.mins?'<div class="meta">'+p.mins+" phút · ≈ "+p.kcal+" kcal</div>":"")+'</div>'+
+      '<ul>'+p.items.map(function(i){return "<li>"+i+"</li>"}).join("")+'</ul>'+
+      (p.note?'<div class="wnote">'+p.note+'</div>':"")+
+      '<button class="btn-done" data-wk="'+p.key+'">'+(done?"✓ Đã hoàn thành — bấm để bỏ":"Đánh dấu đã tập")+'</button>'+
+      logHtml+'</div>';
+  }).join("");
+}
+/* Ước tính kcal từ phút + nhịp tim TB (phương pháp Karvonen %HRR → MET).
+   Kém chính xác hơn số đồng hồ (thiếu VO2max cá nhân) — chỉ dùng khi bỏ trống kcal. */
+function hrKcal(mins,hr){
+  var max=hrMax(),rest=65; // nhịp tim nghỉ giả định 65
+  var hrr=(hr-rest)/(max-rest);
+  hrr=Math.min(Math.max(hrr,0.2),1);
+  var met=1+hrr*9.5;
+  return Math.round(met*3.5*(latestKg()||70)/200*mins);
+}
+/* nhận xét nhịp tim thật so với vùng mục tiêu của buổi tập */
+function hrFeedback(p,hr){
+  if(p.tag!=="end")return"";
+  if(p.title.indexOf("HIIT")>=0)return' <span style="color:var(--muted)">(HIIT: số TB gồm cả lúc nghỉ giữa hiệp)</span>';
+  var lo=Math.round(hrMax()*0.6),hi=Math.round(hrMax()*0.7);
+  if(hr>hi+4)return' <span style="color:var(--warn)">— cao hơn Vùng 2 ('+lo+'–'+hi+'): buổi sau chạy chậm lại hoặc đi bộ dốc, đốt mỡ bền hơn</span>';
+  if(hr<lo-5)return' <span style="color:var(--muted)">— nhẹ hơn Vùng 2 ('+lo+'–'+hi+'): tăng tốc độ hoặc độ dốc một chút</span>';
+  return' <span style="color:var(--good-text)">✓ chuẩn Vùng 2</span>';
+}
+
+/* ---------- meal plan generator ---------- */
+/* Nguyên liệu quen thuộc của người dùng: [tên, kcal/phần, gam đạm/phần] */
+var ING={
+  trung:["Trứng luộc / ốp la ít dầu (1 quả)",78,6.3],
+  sandwich:["Bánh mì sandwich (1 lát)",75,2.5],
+  suaCD:["Sữa Vinamilk có đường (1 hộp 180ml)",140,5],
+  suaHP:["Sữa cao đạm Vinamilk (1 hộp 180ml)",120,15],
+  scVNM:["Sữa chua Vinamilk (1 hộp)",105,3.5],
+  ga:["Ức gà áp chảo / luộc (100g)",165,31],
+  bo:["Thịt bò nạc xào / áp chảo (100g)",182,26],
+  lon:["Thịt lợn nạc luộc / kho nhạt (100g)",165,27],
+  tom:["Tôm hấp / rim nhạt (100g)",99,24],
+  ca:["Cá kho / hấp (100g)",140,22],
+  whey:["Whey protein (1 muỗng 30g)",120,24],
+  com:["Cơm trắng (1 chén)",200,4],
+  khoai:["Khoai lang luộc (150g)",130,2],
+  yen:["Yến mạch nấu sữa (40g)",150,5],
+  rauX:["Rau xào ít dầu (1 dĩa)",120,3],
+  rauL:["Rau luộc / salad (1 dĩa)",50,3],
+  chuoi:["Chuối (1 trái)",105,1.3]
+};
+var PROT_KEYS=["ga","bo","lon","tom","ca"];
+var PROT_NAME={ga:"gà",bo:"bò",lon:"thịt lợn",tom:"tôm",ca:"cá"};
+function foodsSel(){return (profile&&profile.foods)||DEF_FOODS}
+function buildMenu(){
+  var f=foodsSel(),tgt=calTarget(),kg=latestKg()||70,protT=Math.round(kg*1.8);
+  var dow=(parseD(today()).getDay()+6)%7;
+  var off=(+store.get("gc_menuoff",0))||0;
+  var pool=PROT_KEYS.filter(function(k){return f[k]});
+  if(!pool.length)pool=["ga"];
+  var lp=pool[(dow+off)%pool.length],dp=pool[(dow+off+1)%pool.length];
+  var isRest=!!weekPlan()[dow].rest;
+  // bữa sáng ghép từ món đã tick
+  var bf=[];
+  if(f.trung)bf.push(["trung",2]);
+  if(f.sandwich)bf.push(["sandwich",2]);
+  else if(f.yen)bf.push(["yen",1]);
+  else if(f.com)bf.push(["com",1]);
+  if(!bf.length)bf.push(["suaHP",1]);
+  var meals=[{n:"🌅 Bữa sáng",items:bf},
+    {n:"🍚 Bữa trưa",items:[[lp,1.5]].concat(f.com?[["com",1]]:(f.khoai?[["khoai",1]]:[])).concat([["rauX",1]])}];
+  var preI=-1,postI=-1;
+  var preKey=f.chuoi?"chuoi":(f.suaCD?"suaCD":(f.scVNM?"scVNM":null));
+  var postKey=f.whey?"whey":(f.suaHP?"suaHP":(f.scVNM?"scVNM":null));
+  if(isRest){
+    var sn=[];if(f.scVNM)sn.push(["scVNM",1]);if(f.chuoi)sn.push(["chuoi",1]);
+    if(!sn.length&&f.suaHP)sn.push(["suaHP",1]);
+    if(sn.length){meals.push({n:"🥛 Ăn phụ chiều (ngày nghỉ)",items:sn});preI=meals.length-1;}
+  }else{
+    if(preKey){meals.push({n:"⚡ Ăn phụ TRƯỚC tập · 60–90 phút trước",items:[[preKey,1]]});preI=meals.length-1;}
+    if(postKey){meals.push({n:"💪 Ăn phụ SAU tập · trong vòng 1 giờ",items:[[postKey,1]]});postI=meals.length-1;}
+  }
+  meals.push({n:"🌙 Bữa tối",items:[[dp,1.5],["rauL",1]]});
+  function total(){
+    var k=0,p=0;
+    meals.forEach(function(m){m.items.forEach(function(it){k+=ING[it[0]][1]*it[1];p+=ING[it[0]][2]*it[1]})});
+    return{k:k,p:p};
+  }
+  // lấp calo còn thiếu — chỉ bằng món đã tick
+  var last=meals.length-1;
+  var fillers=[
+    {m:0,key:"suaHP",q:1},{m:1,key:"com",q:0.5},{m:0,key:"sandwich",q:1},
+    {m:preI,key:"suaCD",q:1},{m:last,key:"scVNM",q:1},{m:0,key:"trung",q:1},
+    {m:last,key:"com",q:1},{m:last,key:"khoai",q:1},{m:postI,key:"chuoi",q:1},
+    {m:1,key:"com",q:0.5},{m:0,key:"yen",q:1}
+  ].filter(function(x){return x.m>=0&&f[x.key]});
+  var t=total();
+  for(var i=0;i<fillers.length;i++){
+    var rem=tgt-t.k;if(rem<90)break;
+    var fl=fillers[i],add=ING[fl.key][1]*fl.q;
+    if(add<=rem+70){
+      var m=meals[fl.m],ex=null;
+      m.items.forEach(function(it){if(it[0]===fl.key)ex=it});
+      if(ex)ex[1]+=fl.q;else m.items.push([fl.key,fl.q]);
+      t=total();
+    }
+  }
+  return{meals:meals,kcal:Math.round(t.k),prot:Math.round(t.p),tgt:tgt,protT:protT,
+    lunch:PROT_NAME[lp],dinner:PROT_NAME[dp],isRest:isRest};
+}
+function fmtQty(q){return q%1===0?q:String(q).replace(".",",")}
+function renderMenu(){
+  var mn=buildMenu();
+  var html=mn.meals.map(function(m){
+    return '<div class="mmeal"><div class="mname">'+m.n+'</div>'+
+      m.items.map(function(it){
+        var g=ING[it[0]],k=Math.round(g[1]*it[1]),p=Math.round(g[2]*it[1]);
+        var qty=(PROT_KEYS.indexOf(it[0])>=0)?Math.round(it[1]*100)+"g — "+g[0].replace(" (100g)",""):fmtQty(it[1])+" × "+g[0];
+        return '<div class="mitem"><span>'+qty+'</span><span class="mk">'+k+' kcal · '+p+'g đạm</span></div>';
+      }).join("")+'</div>';
+  }).join("");
+  var fitK=Math.abs(mn.kcal-mn.tgt)<=120,fitP=mn.prot>=Math.round((latestKg()||70)*1.6);
+  html+='<div class="mtotal"><span>Tổng cộng</span><span>'+fmtN(mn.kcal)+' kcal · '+mn.prot+'g đạm</span></div>'+
+    '<div class="mfit" style="color:'+(fitK?"var(--good-text)":"var(--warn)")+'">'+(fitK?"✓":"≈")+' Mục tiêu calo: '+fmtN(mn.tgt)+' kcal</div>'+
+    '<div class="mfit" style="color:'+(fitP?"var(--good-text)":"var(--warn)")+'">'+(fitP?"✓":"!")+' Mục tiêu đạm: ≥ '+Math.round((latestKg()||70)*1.6)+'g (tối ưu '+mn.protT+'g)</div>';
+  document.getElementById("menuBody").innerHTML=html;
+}
+
+/* ---------- advice engine ---------- */
+function buildAdvice(){
+  var out=[],p=profile,kg=latestKg(),rate=weeklyRate(),tgt=calTarget();
+  var s=sortedW();
+  var losing=p.goal<kg-0.5;
+  if(s.length<7){
+    out.push(["info","Hãy cân mỗi sáng (sau khi đi vệ sinh, trước ăn sáng) ít nhất 7 ngày để AI xác định xu hướng thật — cân nặng dao động 1–2 kg/ngày do nước là bình thường."]);
+  }
+  var a=adaptiveTDEE();
+  if(!a){
+    out.push(["info","Ghi đủ món ăn ≥ 8 ngày trong 3 tuần để mở khóa TDEE thích ứng — khi đó mục tiêu calo sẽ tính từ trao đổi chất THẬT của bạn thay vì công thức trung bình."]);
+  }else{
+    out.push(["ok","TDEE thích ứng đã kích hoạt (độ tin cậy "+Math.round(a.conf*100)+"%): cơ thể bạn đốt ≈ "+fmtN(a.tdee)+" kcal/ngày dựa trên "+a.logDays+" ngày ghi chép thực tế."]);
+  }
+  if(rate!=null&&losing){
+    var maxSafe=kg*0.01; // 1% BW / week
+    if(-rate>maxSafe+0.1){
+      out.push(["bad","Bạn đang giảm "+r1(-rate)+" kg/tuần — nhanh hơn ngưỡng an toàn ~1% cân nặng ("+r1(maxSafe)+" kg/tuần). Giảm quá nhanh làm mất cơ và chậm trao đổi chất. Hãy ăn thêm ~200–300 kcal/ngày, ưu tiên protein."]);
+    }else if(-rate>=p.rate*0.7){
+      out.push(["ok","Tốc độ giảm hiện tại "+r1(-rate)+" kg/tuần — đúng lộ trình mục tiêu "+p.rate+" kg/tuần. Giữ nguyên mức calo "+fmtN(tgt)+" kcal/ngày."]);
+    }else if(rate<0){
+      out.push(["warn","Đang giảm "+r1(-rate)+" kg/tuần, chậm hơn mục tiêu "+p.rate+" kg/tuần. Thử giảm thêm ~150 kcal/ngày HOẶC thêm 2.000–3.000 bước đi bộ mỗi ngày, theo dõi thêm 2 tuần."]);
+    }else if(rate>=0&&rate<0.15){
+      out.push(["warn","Cân nặng đang đi ngang (plateau). Kiểm tra lại khẩu phần (dầu ăn, nước chấm, đồ uống thường bị bỏ sót ~20–30% calo). Nếu đã ghi chép chuẩn ≥ 3 tuần mà vẫn đứng cân, xem lời khuyên về 'nghỉ diet' bên dưới."]);
+    }else{
+      out.push(["bad","Cân nặng đang tăng "+r1(rate)+" kg/tuần dù mục tiêu là giảm. Rà soát nhật ký ăn: bạn có ghi đủ đồ uống, ăn vặt, dầu mỡ khi nấu chưa?"]);
+    }
+    // plateau + diet break (MATADOR)
+    var r3=null, n3=trendKg(0), p3=trendKg(21);
+    if(n3!=null&&p3!=null)r3=n3-p3;
+    if(r3!=null&&Math.abs(r3)<0.4&&s.length>=15&&a&&a.avgIntake<=tgt+100){
+      out.push(["info","Đứng cân ≥ 3 tuần dù ăn đúng kế hoạch → dấu hiệu thích ứng trao đổi chất. Nghiên cứu MATADOR (Byrne 2018) gợi ý: ăn ở mức duy trì ("+fmtN(bestTDEE().tdee)+" kcal) trong 1–2 tuần rồi quay lại giảm — giúp giảm mỡ tốt hơn về dài hạn."]);
+    }
+  }
+  // treat frequency (last 7 days)
+  var t7=treats.filter(function(t){return t>=addDays(today(),-6)&&t<=today()}).length;
+  if(t7>=3){
+    out.push(["warn","Có "+t7+" ngày treat trong 7 ngày qua — mỗi ngày treat 'ăn' mất khoảng nửa tuần tiến độ. Thử giới hạn 1 ngày treat/tuần, và trong tiệc ưu tiên đồ nướng/luộc thay vì chiên + hạn chế nước ngọt/bia."]);
+  }else if(t7>0){
+    out.push(["ok","Tuần qua có "+t7+" ngày treat — tần suất hợp lý. Nghiên cứu cho thấy nghỉ có kế hoạch giúp theo đuổi chế độ ăn bền hơn là kiêng tuyệt đối."]);
+  }
+  // workout adherence this week
+  var mon=mondayOfWeek(),sunD=addDays(mon,6);
+  var wkDone=workouts.filter(function(w){return w.d>=mon&&w.d<=sunD&&w.key!=="wed"&&w.key!=="sun"}).length;
+  if(wkDone>=2){
+    out.push(["ok","Tuần này đã hoàn thành "+wkDone+" buổi tập — tập tạ đều là 'bảo hiểm' tốt nhất chống mất cơ khi giảm cân. Tiếp tục nhé!"]);
+  }else if(losing){
+    out.push(["info","Đừng quên lịch tập (tab Tập luyện): tối thiểu 2–3 buổi tạ/tuần để phần cân giảm đi là MỠ chứ không phải cơ bắp."]);
+  }
+  // nhịp tim cardio thật (từ đồng hồ) so với Vùng 2
+  var planW=weekPlan(),z2hi=Math.round(hrMax()*0.7),z2lo=Math.round(hrMax()*0.6);
+  var hotCardio=workouts.filter(function(w){
+    if(!(w.d>=mon&&w.d<=sunD&&w.hr))return false;
+    var pw=null;planW.forEach(function(x){if(x.key===w.key)pw=x});
+    return pw&&pw.tag==="end"&&pw.title.indexOf("HIIT")<0&&w.hr>z2hi+4;
+  });
+  if(hotCardio.length){
+    out.push(["warn","Buổi cardio Vùng 2 gần đây nhịp tim trung bình "+hotCardio[hotCardio.length-1].hr+" — vượt trần Vùng 2 ("+z2lo+"–"+z2hi+"). Chạy nhanh hơn không đốt mỡ nhiều hơn mà chỉ mệt hơn và lâu hồi phục — giảm tốc độ hoặc chuyển sang đi bộ dốc, giữ tim trong vùng."]);
+  }
+  // protein
+  var prot=Math.round(kg*1.6),prot2=Math.round(kg*2.2);
+  out.push(["info","Protein mục tiêu: "+prot+"–"+prot2+" g/ngày (1,6–2,2 g/kg) để giữ cơ khi giảm cân — tương đương ~"+Math.round(prot/30)+"–"+Math.round(prot2/30)+" phần thịt/cá/trứng 100g. (Morton 2018)"]);
+  // today's intake feedback
+  var eaten=kcalOfDay(today());
+  if(eaten>0){
+    var left=tgt-eaten;
+    if(left>=0)out.push(["ok","Hôm nay đã nạp "+fmtN(eaten)+" kcal, còn lại "+fmtN(left)+" kcal trong ngân sách."]);
+    else out.push(["warn","Hôm nay đã vượt ngân sách "+fmtN(-left)+" kcal. Đừng nhịn bù cực đoan — chỉ cần quay lại kế hoạch từ bữa sau, và đi bộ thêm ~"+fmtN(-left/4)+" phút nếu tiện."]);
+  }
+  var b=bmiInfo();
+  if(b&&b.bmi<18.5&&losing)out.push(["bad","BMI của bạn đang ở mức thiếu cân ("+r1(b.bmi)+"). Không nên tiếp tục giảm — hãy tham khảo bác sĩ."]);
+  return out;
+}
+function bmiInfo(){
+  var kg=latestKg();if(!kg||!profile)return null;
+  var m=profile.h/100,bmi=kg/(m*m);
+  var lbl=bmi<18.5?"Thiếu cân":bmi<23?"Bình thường":bmi<25?"Thừa cân nhẹ":bmi<30?"Thừa cân":"Béo phì";
+  return{bmi:bmi,lbl:lbl}; // ngưỡng châu Á (WHO WPRO): 23/25
+}
+
+/* ---------- SVG charts ---------- */
+var NS="http://www.w3.org/2000/svg";
+function el(t,a){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);return e}
+function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim()}
+
+function weightChart(container,days){
+  var wrap=document.getElementById(container);wrap.innerHTML="";
+  var s=sortedW().filter(function(w){return w.d>=addDays(today(),-(days-1))});
+  if(s.length<2){wrap.innerHTML='<div class="empty">Cần ít nhất 2 lần cân để vẽ biểu đồ.</div>';return}
+  var W=700,H=260,mL=44,mR=14,mT=14,mB=26;
+  var svg=el("svg",{viewBox:"0 0 "+W+" "+H,role:"img","aria-label":"Biểu đồ cân nặng"});
+  var d0=s[0].d,d1=s[s.length-1].d,span=Math.max(daysBetween(d0,d1),1);
+  var kgs=s.map(function(w){return w.kg});
+  var lo=Math.min.apply(null,kgs),hi=Math.max.apply(null,kgs);
+  if(profile&&profile.goal)lo=Math.min(lo,profile.goal);
+  var padY=Math.max((hi-lo)*0.15,0.5);lo-=padY;hi+=padY;
+  function X(d){return mL+(daysBetween(d0,d)/span)*(W-mL-mR)}
+  function Y(kg){return mT+(1-(kg-lo)/(hi-lo))*(H-mT-mB)}
+  // grid + y labels
+  for(var i=0;i<=4;i++){
+    var v=lo+(hi-lo)*i/4,y=Y(v);
+    svg.appendChild(el("line",{x1:mL,x2:W-mR,y1:y,y2:y,stroke:css("--grid"),"stroke-width":1}));
+    var t=el("text",{x:mL-8,y:y+4,"text-anchor":"end","font-size":11,fill:css("--muted")});
+    t.textContent=r1(v);svg.appendChild(t);
+  }
+  // x labels (4)
+  for(var j=0;j<=3;j++){
+    var dd=addDays(d0,Math.round(span*j/3));
+    var tx=el("text",{x:X(dd),y:H-8,"text-anchor":j===0?"start":(j===3?"end":"middle"),"font-size":11,fill:css("--muted")});
+    tx.textContent=fmtShort(dd);svg.appendChild(tx);
+  }
+  // goal line
+  if(profile&&profile.goal&&profile.goal>lo&&profile.goal<hi){
+    var gy=Y(profile.goal);
+    svg.appendChild(el("line",{x1:mL,x2:W-mR,y1:gy,y2:gy,stroke:css("--accent"),"stroke-width":1.5,"stroke-dasharray":"5 4",opacity:.8}));
+    var gt=el("text",{x:W-mR,y:gy-5,"text-anchor":"end","font-size":10,fill:css("--accent")});
+    gt.textContent="Mục tiêu "+profile.goal+" kg";svg.appendChild(gt);
+  }
+  // 7d moving average path
+  var pts=s.map(function(w){
+    var from=addDays(w.d,-6),vals=[];
+    s.forEach(function(x){if(x.d>=from&&x.d<=w.d)vals.push(x.kg)});
+    return{d:w.d,ma:vals.reduce(function(a,b){return a+b},0)/vals.length,kg:w.kg};
+  });
+  var path="";pts.forEach(function(p,i){path+=(i?"L":"M")+X(p.d).toFixed(1)+" "+Y(p.ma).toFixed(1)+" "});
+  svg.appendChild(el("path",{d:path,fill:"none",stroke:css("--blue"),"stroke-width":2,"stroke-linecap":"round","stroke-linejoin":"round"}));
+  // raw dots
+  pts.forEach(function(p){
+    svg.appendChild(el("circle",{cx:X(p.d),cy:Y(p.kg),r:3.5,fill:css("--blue"),opacity:.4,stroke:css("--surface"),"stroke-width":1.5}));
+  });
+  // endpoint emphasis + label
+  var lastP=pts[pts.length-1];
+  svg.appendChild(el("circle",{cx:X(lastP.d),cy:Y(lastP.ma),r:4.5,fill:css("--blue"),stroke:css("--surface"),"stroke-width":2}));
+  var lt=el("text",{x:Math.min(X(lastP.d)+8,W-mR-30),y:Y(lastP.ma)-9,"font-size":12,"font-weight":"700",fill:css("--ink")});
+  lt.textContent=r1(lastP.ma)+" kg";svg.appendChild(lt);
+  wrap.appendChild(svg);
+  // hover crosshair + tooltip
+  var tip=document.createElement("div");tip.className="tip";wrap.appendChild(tip);
+  var vline=el("line",{y1:mT,y2:H-mB,stroke:css("--axis"),"stroke-width":1,opacity:0});svg.appendChild(vline);
+  function move(ev){
+    var r=svg.getBoundingClientRect();
+    var cx=ev.touches?ev.touches[0].clientX:ev.clientX;
+    var px=(cx-r.left)/r.width*W,best=null,bd=1e9;
+    pts.forEach(function(p){var d=Math.abs(X(p.d)-px);if(d<bd){bd=d;best=p}});
+    if(!best)return;
+    vline.setAttribute("x1",X(best.d));vline.setAttribute("x2",X(best.d));vline.setAttribute("opacity",.6);
+    tip.style.left=(X(best.d)/W*100)+"%";tip.style.top=(Y(best.kg)/H*100)+"%";
+    tip.innerHTML=fmtFull(best.d)+" · <b>"+best.kg+" kg</b> · TB7: "+r1(best.ma);
+    tip.style.opacity=1;
+  }
+  function leave(){tip.style.opacity=0;vline.setAttribute("opacity",0)}
+  svg.addEventListener("mousemove",move);svg.addEventListener("touchstart",move,{passive:true});
+  svg.addEventListener("touchmove",move,{passive:true});
+  svg.addEventListener("mouseleave",leave);svg.addEventListener("touchend",leave);
+}
+
+function calChart(container){
+  var wrap=document.getElementById(container);wrap.innerHTML="";
+  var tgt=calTarget(),days=[],any=false;
+  for(var i=13;i>=0;i--){var d=addDays(today(),-i),k=kcalOfDay(d);days.push({d:d,k:k});if(k>0)any=true}
+  if(!any){wrap.innerHTML='<div class="empty">Chưa có món ăn nào được ghi trong 14 ngày qua.</div>';return}
+  var W=700,H=230,mL=44,mR=14,mT=16,mB=26;
+  var hi=Math.max(tgt*1.25,Math.max.apply(null,days.map(function(x){return x.k}))*1.1,1500);
+  var svg=el("svg",{viewBox:"0 0 "+W+" "+H,role:"img","aria-label":"Biểu đồ calo 14 ngày"});
+  function Y(v){return mT+(1-v/hi)*(H-mT-mB)}
+  for(var g=0;g<=4;g++){
+    var v=hi*g/4,y=Y(v);
+    svg.appendChild(el("line",{x1:mL,x2:W-mR,y1:y,y2:y,stroke:css("--grid"),"stroke-width":1}));
+    var t=el("text",{x:mL-8,y:y+4,"text-anchor":"end","font-size":11,fill:css("--muted")});
+    t.textContent=fmtN(v);svg.appendChild(t);
+  }
+  var bw=(W-mL-mR)/14;
+  var tip=document.createElement("div");tip.className="tip";
+  days.forEach(function(o,i){
+    if(o.k<=0)return;
+    var x=mL+i*bw+2,w=bw-4,y=Y(o.k),h=H-mB-y;
+    var rect=el("rect",{x:x,y:y,width:w,height:Math.max(h,2),rx:4,fill:css("--blue")});
+    svg.appendChild(rect);
+    rect.addEventListener("mouseenter",function(){
+      tip.style.left=((x+w/2)/W*100)+"%";tip.style.top=(y/H*100)+"%";
+      tip.innerHTML=fmtFull(o.d)+" · <b>"+fmtN(o.k)+" kcal</b>"+(tgt?(" · "+(o.k<=tgt?"✓ trong":"vượt")+" mục tiêu"):"");
+      tip.style.opacity=1;
+    });
+    rect.addEventListener("mouseleave",function(){tip.style.opacity=0});
+  });
+  // target line
+  if(tgt){
+    var ty=Y(tgt);
+    svg.appendChild(el("line",{x1:mL,x2:W-mR,y1:ty,y2:ty,stroke:css("--muted"),"stroke-width":1.5,"stroke-dasharray":"5 4"}));
+    var tl=el("text",{x:W-mR,y:ty-5,"text-anchor":"end","font-size":10,fill:css("--muted")});
+    tl.textContent="Mục tiêu "+fmtN(tgt);svg.appendChild(tl);
+  }
+  // x labels
+  [0,6,13].forEach(function(i){
+    var tx=el("text",{x:mL+i*bw+bw/2,y:H-8,"text-anchor":"middle","font-size":11,fill:css("--muted")});
+    tx.textContent=fmtShort(days[i].d);svg.appendChild(tx);
+  });
+  wrap.appendChild(svg);wrap.appendChild(tip);
+}
+
+/* ---------- rendering ---------- */
+function toast(msg){
+  var t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");
+  clearTimeout(t._h);t._h=setTimeout(function(){t.classList.remove("show")},2200);
+}
+function budgetHTML(eaten,tgt){
+  var pct=tgt?Math.min(eaten/tgt*100,100):0,over=eaten>tgt;
+  return '<div class="bar"><div class="fill'+(over?" over":"")+'" style="width:'+pct+'%"></div></div>'+
+    '<div class="nums"><span>Đã ăn: <b>'+fmtN(eaten)+'</b> kcal</span><span>'+
+    (over?('Vượt <b style="color:var(--critical)">'+fmtN(eaten-tgt)+'</b> kcal'):('Còn lại: <b>'+fmtN(Math.max(tgt-eaten,0))+'</b> kcal'))+
+    '</span></div>';
+}
+function renderBriefing(){
+  var d=today(),tgt=calTarget(),p=profile;
+  var keys=["mon","tue","wed","thu","fri","sat","sun"];
+  var dow=(parseD(d).getDay()+6)%7;
+  var plan=weekPlan(),sess=plan[dow];
+  var VNDAYS=["Thứ 2","Thứ 3","Thứ 4","Thứ 5","Thứ 6","Thứ 7","Chủ nhật"];
+  document.getElementById("briefTitle").textContent="☀️ Bản tin "+VNDAYS[dow]+", "+fmtShort(d);
+  var rows=[];
+  // 1. cân sáng nay
+  var weighedToday=weights.some(function(w){return w.d===d});
+  if(weighedToday){
+    var rate=weeklyRate();
+    rows.push(["⚖️","Cân sáng nay: <span class='bv'>"+latestKg()+" kg</span>"+
+      (rate!=null?" · xu hướng "+(rate<-0.05?"giảm "+r1(-rate):(rate>0.05?"tăng "+r1(rate):"đi ngang ±0"))+" kg/tuần":"")]);
+  }else{
+    rows.push(["⚖️","<b>Chưa cân hôm nay</b> — bước lên cân rồi nhập số để bản tin chính xác nhất."]);
+  }
+  // 2. mục tiêu calo hôm nay
+  var eaten=kcalOfDay(d);
+  rows.push(["🎯","Mục tiêu calo hôm nay: <span class='bv'>"+fmtN(tgt)+" kcal</span>"+
+    (eaten>0?" · đã ăn "+fmtN(eaten)+", còn <b>"+fmtN(Math.max(tgt-eaten,0))+"</b>":"")+
+    " · protein ≥ <b>"+Math.round((latestKg()||70)*1.6)+" g</b>"]);
+  // 3. buổi tập hôm nay
+  var done=isDone(sess.key);
+  rows.push(["🏋️","Hôm nay: <span class='ppill "+pLabel(sess.tag)[1]+"'>"+pLabel(sess.tag)[0]+"</span> <b>"+sess.title+"</b>"+
+    (sess.mins?" · "+sess.mins+" phút · ≈ "+sess.kcal+" kcal":"")+
+    (done?" — <span style='color:var(--good-text)'>✓ đã hoàn thành</span>":"")+
+    (sess.tag==="end"?"<br><span style='color:var(--ink-2);font-size:.85rem'>Giữ nhịp tim Vùng 2: "+z2()+(sess.key==='sat'?" · đoạn nhanh: "+z4():"")+"</span>":"")]);
+  // 4. thực đơn gợi ý
+  var mn=buildMenu();
+  rows.push(["🍽️","Thực đơn gợi ý: trưa <b>"+mn.lunch+"</b> · tối <b>"+mn.dinner+"</b>"+(mn.isRest?"":" · whey sau tập")+
+    " — tổng ≈ "+fmtN(mn.kcal)+" kcal, "+mn.prot+"g đạm. Chi tiết + nút ghi nhanh ở tab Ăn uống."]);
+  // 5. lời khuyên từ hôm qua
+  var y=addDays(d,-1),yEaten=kcalOfDay(y),yTgt=calTarget(y);
+  if(isTreat(y)){
+    rows.push(["🎉","Hôm qua là ngày treat. Nếu sáng nay cân tăng 1–2 kg thì phần lớn là <b>nước + glycogen, không phải mỡ</b> — sẽ tự xuống trong 2–3 ngày. Hôm nay: quay về "+fmtN(tgt)+" kcal, ưu tiên protein + rau, KHÔNG nhịn bù, và nếu tiện thêm 15–20 phút Vùng 2."]);
+  }else if(yEaten>0){
+    var diff=yEaten-yTgt;
+    if(diff>150){
+      rows.push(["💬","Hôm qua ăn "+fmtN(yEaten)+"/"+fmtN(yTgt)+" kcal (vượt "+fmtN(diff)+"). Không sao — hôm nay bám sát mục tiêu và hoàn thành buổi tập là cân bằng lại. Đừng cắt bữa để 'chuộc lỗi'."]);
+    }else if(yEaten<yTgt-400){
+      rows.push(["💬","Hôm qua chỉ ăn "+fmtN(yEaten)+" kcal — thấp hơn mục tiêu khá nhiều. Ăn quá ít làm mất cơ và dễ bùng ăn lại. Hôm nay hãy ăn đủ "+fmtN(tgt)+" kcal."]);
+    }else{
+      rows.push(["💬","Hôm qua đạt mục tiêu ("+fmtN(yEaten)+"/"+fmtN(yTgt)+" kcal) — đúng hướng, giữ nhịp này! 👏"]);
+    }
+  }else{
+    rows.push(["💬","Hôm qua chưa ghi món ăn nào. Nếu là ngày ăn ngoài, mở tab Ăn uống → chọn ngày hôm qua → bấm <b>🎉 ngày treat</b> để app ước lượng đúng thay vì bỏ trống."]);
+  }
+  document.getElementById("briefBody").innerHTML=rows.map(function(r){
+    return '<div class="brief-row"><span class="bic">'+r[0]+'</span><span>'+r[1]+'</span></div>';
+  }).join("");
+}
+function renderDaily(){
+  var tgtToday=calTarget(),kg=latestKg();
+  document.getElementById("dailyHead").innerHTML=
+    '<div class="dhead"><span class="bignum">'+fmtN(tgtToday)+' kcal</span>'+
+    '<span class="sub">là mục tiêu HÔM NAY của bạn — tính từ cân nặng mới nhất '+(kg?r1(kg)+' kg':'—')+
+    (bestTDEE().src==="adaptive"?' và trao đổi chất đo được từ dữ liệu thật':'')+'</span></div>';
+  var byDate={};weights.forEach(function(w){byDate[w.d]=w.kg});
+  var rows='<tr><th>Ngày</th><th class="n">Cân nặng</th><th class="n">Thay đổi</th><th class="n">Đã ăn</th><th class="n">Mục tiêu ngày</th><th>Kết quả</th></tr>';
+  for(var i=0;i<14;i++){
+    var d=addDays(today(),-i),w=byDate[d],eaten=kcalOfDay(d),tgt=calTarget(d);
+    var tr=trendKg(0,d),trPrev=trendKg(1,d);
+    var chg="—",chgCls="chg-0";
+    if(tr!=null&&trPrev!=null){
+      var dv=tr-trPrev;
+      if(dv<=-0.05){chg="▼ "+r1(-dv)+" kg";chgCls="chg-dn"}
+      else if(dv>=0.05){chg="▲ "+r1(dv)+" kg";chgCls="chg-up"}
+      else chg="→ ổn định";
+    }
+    var res;
+    if(isTreat(d))res='<span style="color:var(--warn)">🎉 ngày treat (ước lượng)</span>';
+    else if(!eaten)res='<span style="color:var(--muted)">chưa ghi món</span>';
+    else{
+      var diff=eaten-tgt;
+      res=diff<=0?'<span class="chg-dn">✓ trong mục tiêu (còn '+fmtN(-diff)+')</span>'
+                 :'<span class="chg-up">vượt '+fmtN(diff)+' kcal</span>';
+    }
+    rows+='<tr'+(i===0?' class="today"':'')+'>'+
+      '<td>'+(i===0?'Hôm nay':(i===1?'Hôm qua':fmtShort(d)))+'</td>'+
+      '<td class="n">'+(w!=null?w+' kg':'<span style="color:var(--muted)">—</span>')+'</td>'+
+      '<td class="n '+chgCls+'">'+chg+'</td>'+
+      '<td class="n">'+(eaten?fmtN(eaten):'—')+'</td>'+
+      '<td class="n"><b>'+fmtN(tgt)+'</b></td>'+
+      '<td>'+res+'</td></tr>';
+  }
+  document.getElementById("dailyTable").innerHTML=rows;
+}
+function renderHome(){
+  renderBriefing();
+  renderDaily();
+  var kg=latestKg(),tr=trendKg(0),rate=weeklyRate(),b=bmiInfo(),tgt=calTarget();
+  var rateHtml=rate==null?'<span class="sub">cần ≥ 2 tuần dữ liệu</span>':
+    '<span class="'+(rate<-0.05?"down":(rate>0.05?"up":"flat"))+'">'+(rate>0?"+":"")+r1(rate)+' kg/tuần</span>';
+  document.getElementById("homeStats").innerHTML=
+    '<div class="stat"><div class="lbl">Cân nặng (TB 7 ngày)</div><div class="val">'+(tr?r1(tr):(kg?r1(kg):"—"))+'</div><div class="sub">mới nhất: '+(kg?r1(kg)+" kg":"—")+'</div></div>'+
+    '<div class="stat"><div class="lbl">Xu hướng</div><div class="val" style="font-size:1.15rem;margin-top:8px">'+rateHtml+'</div></div>'+
+    '<div class="stat"><div class="lbl">BMI</div><div class="val">'+(b?r1(b.bmi):"—")+'</div><div class="sub">'+(b?b.lbl:"")+'</div></div>'+
+    '<div class="stat"><div class="lbl">Mục tiêu calo</div><div class="val">'+fmtN(tgt)+'</div><div class="sub">kcal/ngày</div></div>';
+  document.getElementById("homeBudget").innerHTML=budgetHTML(kcalOfDay(today()),tgt);
+  weightChart("homeChart",30);
+  var adv=buildAdvice().slice(0,3);
+  document.getElementById("homeAdvice").innerHTML=adv.map(function(a){
+    var ic={ok:"✓",warn:"!",bad:"✕",info:"i"}[a[0]];
+    return '<li><span class="ic '+a[0]+'">'+ic+'</span><span>'+a[1]+'</span></li>';
+  }).join("");
+}
+function renderWeight(){
+  // lời khuyên calo hôm nay, cập nhật ngay theo cân nặng vừa ghi
+  var fb=document.getElementById("w_feedback");
+  var hasToday=weights.some(function(w){return w.d===today()});
+  if(hasToday){
+    var tgt=calTarget(),rate=weeklyRate();
+    var msg="⚡ <b>Hôm nay bạn nên ăn ≈ "+fmtN(tgt)+" kcal</b> — tính từ cân nặng sáng nay "+latestKg()+" kg";
+    if(rate!=null)msg+=", xu hướng "+(rate<-0.05?"giảm "+r1(-rate):(rate>0.05?"tăng "+r1(rate):"đi ngang ±0"))+" kg/tuần";
+    msg+=".";
+    fb.innerHTML='<div style="background:var(--accent-soft);color:var(--accent-ink);padding:10px 13px;border-radius:10px;font-size:.92rem">'+msg+'</div>';
+  }else{
+    fb.innerHTML='<div style="background:var(--bg);border:1px dashed var(--line);color:var(--ink-2);padding:10px 13px;border-radius:10px;font-size:.92rem">Ghi cân nặng sáng nay để nhận mục tiêu calo cho hôm nay.</div>';
+  }
+  weightChart("weightChart",90);
+  var s=sortedW().slice().reverse().slice(0,30);
+  document.getElementById("weightLog").innerHTML=s.length?s.map(function(w){
+    return '<li><span>'+fmtFull(w.d)+'</span><span style="display:flex;align-items:center;gap:4px"><span class="kcal">'+w.kg+' kg</span>'+
+      '<button class="del" data-wd="'+w.d+'" aria-label="Xóa">✕</button></span></li>';
+  }).join(""):'<div class="empty">Chưa có dữ liệu. Hãy ghi lần cân đầu tiên!</div>';
+  // table view
+  var rows=sortedW().slice(-30);
+  document.getElementById("weightTable").innerHTML='<table class="datatable"><tr><th>Ngày</th><th class="n">Cân nặng (kg)</th></tr>'+
+    rows.map(function(w){return '<tr><td>'+fmtFull(w.d)+'</td><td class="n">'+w.kg+'</td></tr>'}).join("")+'</table>';
+}
+function renderFood(){
+  var d=document.getElementById("f_date").value||today();
+  document.getElementById("f_dayTitle").textContent="Nhật ký ngày "+fmtFull(d);
+  var items=foods.map(function(f,i){f._i=i;return f}).filter(function(f){return f.d===d});
+  var treat=isTreat(d);
+  document.getElementById("treatArea").innerHTML=treat?
+    '<div class="treat-banner">🎉 Ngày này được đánh dấu là <b>ngày treat</b> — app tự ước lượng calo khi tính trao đổi chất. Cứ tận hưởng, mai quay lại kế hoạch!</div>':"";
+  document.getElementById("t_toggle").textContent=treat?"Bỏ đánh dấu ngày treat":"🎉 Ăn ngoài, không tracking được — đánh dấu ngày treat";
+  document.getElementById("foodBudget").innerHTML=treat?"":budgetHTML(kcalOfDay(d),calTarget());
+  renderMenu();
+  document.getElementById("foodLog").innerHTML=items.length?items.map(function(f){
+    return '<li><span>'+f.name+(f.qty!==1?' <span class="meta">×'+f.qty+'</span>':"")+'</span>'+
+      '<span style="display:flex;align-items:center;gap:4px"><span class="kcal">'+fmtN(f.kcal*f.qty)+' kcal</span>'+
+      '<button class="del" data-fi="'+f._i+'" aria-label="Xóa">✕</button></span></li>';
+  }).join(""):'<div class="empty">Chưa có món nào — thêm bữa sáng của bạn ở trên nhé.</div>';
+  calChart("calChart");
+}
+function renderPlan(){
+  var p=profile,kg=latestKg(),tgt=calTarget(),bt=bestTDEE(),b0=bmr(kg);
+  var losing=p.goal<kg-0.5;
+  document.getElementById("p_target").textContent=fmtN(tgt)+" kcal";
+  document.getElementById("p_targetSub").innerHTML=(losing?
+    "Để giảm "+p.rate+" kg/tuần (thâm hụt ≈ "+fmtN(p.rate*7700/7)+" kcal/ngày so với mức đốt của bạn)":
+    (p.goal>kg+0.5?"Để tăng "+p.rate+" kg/tuần":"Để duy trì cân nặng hiện tại"))+
+    (bt.src==="adaptive"?' · <span class="pill">TDEE thích ứng</span>':' · <span class="pill">Ước tính công thức</span>');
+  var rows=[["BMR — năng lượng trao đổi chất cơ bản",fmtN(b0)+" kcal"],
+    ["TDEE ước tính ban đầu (BMR × 1,2 + calo lịch tập)",fmtN(tdeeFormula(kg))+" kcal"]];
+  if(bt.src==="adaptive"){
+    rows.push(["TDEE thích ứng (từ "+bt.detail.logDays+" ngày dữ liệu thật của bạn)",fmtN(bt.detail.tdee)+" kcal"]);
+    rows.push(["TDEE ước tính tốt nhất (pha trộn theo độ tin cậy "+Math.round(bt.conf*100)+"%)",'<b style="color:var(--accent-ink)">'+fmtN(bt.tdee)+" kcal</b>"]);
+  }else{
+    rows.push(["TDEE thích ứng","<i style='color:var(--muted)'>chưa đủ dữ liệu</i>"]);
+  }
+  rows.push(["Mục tiêu calo/ngày",'<b style="color:var(--accent-ink)">'+fmtN(tgt)+" kcal</b>"]);
+  rows.push(["Protein khuyến nghị",Math.round(kg*1.6)+"–"+Math.round(kg*2.2)+" g/ngày"]);
+  document.getElementById("p_energy").innerHTML=rows.map(function(r){return '<div class="kv"><span>'+r[0]+'</span><b>'+r[1]+'</b></div>'}).join("");
+  document.getElementById("p_confNote").textContent=bt.src==="adaptive"?
+    "Cách tính: TDEE = calo trung bình bạn ăn − (thay đổi cân nặng × 7.700 kcal/kg ÷ số ngày). Càng ghi chép đều, con số càng chính xác — chính xác hơn mọi công thức vì nó đo chính cơ thể bạn.":
+    "Hiện dùng công thức Mifflin-St Jeor × hệ số vận động. Ghi đủ cân nặng + món ăn ≥ 8 ngày để chuyển sang TDEE thích ứng đo từ chính cơ thể bạn.";
+  document.getElementById("p_advice").innerHTML=buildAdvice().map(function(a){
+    var ic={ok:"✓",warn:"!",bad:"✕",info:"i"}[a[0]];
+    return '<li><span class="ic '+a[0]+'">'+ic+'</span><span>'+a[1]+'</span></li>';
+  }).join("");
+  // forecast
+  var fc="";
+  if(losing){
+    var remain=kg-p.goal,rate=weeklyRate();
+    var useRate=(rate!=null&&rate<-0.05)?-rate:p.rate;
+    var weeks=remain/useRate;
+    var eta=addDays(today(),Math.round(weeks*7));
+    fc='<div class="kv"><span>Còn phải giảm</span><b>'+r1(remain)+' kg</b></div>'+
+       '<div class="kv"><span>Tốc độ dùng để dự báo</span><b>'+r1(useRate)+' kg/tuần '+(rate!=null&&rate<-0.05?"(thực tế)":"(kế hoạch)")+'</b></div>'+
+       '<div class="kv"><span>Dự kiến đạt '+p.goal+' kg</span><b>'+fmtFull(eta)+' (~'+Math.ceil(weeks)+' tuần)</b></div>'+
+       '<p class="note">Lưu ý: tốc độ giảm sẽ chậm dần khi cân nặng giảm (TDEE giảm theo) — ứng dụng sẽ tự cập nhật mục tiêu calo theo dữ liệu mới.</p>';
+  }else{
+    fc='<p style="font-size:.9rem;color:var(--ink-2)">Bạn đang ở chế độ '+(p.goal>kg+0.5?"tăng cân":"duy trì")+'.</p>';
+  }
+  document.getElementById("p_forecast").innerHTML=fc;
+}
+function renderScience(){
+  var p=profile,kg=latestKg(),b0=fmtN(bmr(kg)),a=adaptiveTDEE();
+  var cards=[
+    ["Công thức BMR chính xác nhất","Mifflin-St Jeor, 1990 · Am J Clin Nutr — được Hiệp hội Dinh dưỡng Hoa Kỳ (Frankenfield 2005) đánh giá là chính xác nhất cho người trưởng thành",
+     "BMR = 10×cân nặng + 6,25×chiều cao − 5×tuổi "+(p.sex==="m"?"+ 5 (nam)":"− 161 (nữ)")+". Đây là năng lượng cơ thể đốt khi nghỉ ngơi hoàn toàn.",
+     "Với bạn ("+age()+" tuổi, "+p.h+" cm, "+r1(kg)+" kg): BMR ≈ "+b0+" kcal/ngày"],
+    ["Quy tắc '3.500 kcal = 0,45 kg mỡ' đã lỗi thời","Hall và cộng sự, 2011 · The Lancet; NIH Body Weight Planner",
+     "Mô hình động cho thấy trao đổi chất GIẢM DẦN khi bạn giảm cân, nên tốc độ giảm chậm lại theo thời gian. Vì vậy app này không dùng công thức tĩnh mà liên tục đo lại TDEE từ dữ liệu cân nặng + calo thực tế của bạn (≈ 7.700 kcal cho mỗi kg mô cơ thể).",
+     a?("TDEE đo được của bạn: ≈ "+fmtN(a.tdee)+" kcal/ngày (từ "+a.logDays+" ngày dữ liệu)"):"Ghi chép ≥ 8 ngày để đo TDEE thật của bạn"],
+    ["Protein giữ cơ khi giảm cân","Morton và cộng sự, 2018 · Br J Sports Med — phân tích tổng hợp 49 thử nghiệm ngẫu nhiên",
+     "1,6 g protein/kg cân nặng mỗi ngày là ngưỡng tối ưu để giữ và xây cơ; lợi ích tăng thêm tới ~2,2 g/kg khi đang thâm hụt calo.",
+     "Với bạn: "+Math.round(kg*1.6)+"–"+Math.round(kg*2.2)+" g protein/ngày"],
+    ["Tốc độ giảm an toàn: 0,5–1% cân nặng/tuần","Khuyến nghị CDC, NHS; tổng quan Garthe 2011 về giữ cơ",
+     "Giảm nhanh hơn 1% cân nặng/tuần làm tăng mất cơ, sỏi mật và hiệu ứng yo-yo. Giảm 5–10% cân nặng đã cải thiện rõ huyết áp, đường huyết, mỡ máu.",
+     "Với bạn: tối đa ≈ "+r1(kg*0.01)+" kg/tuần · mốc 5% đầu tiên = "+r1(kg*0.95)+" kg"],
+    ["Nghỉ diet giúp giảm mỡ bền hơn","Byrne và cộng sự, 2018 · Int J Obes — nghiên cứu MATADOR",
+     "Nhóm giảm cân xen kẽ (2 tuần thâm hụt / 2 tuần duy trì) giảm nhiều mỡ hơn và giữ cân tốt hơn nhóm thâm hụt liên tục, do hạn chế thích ứng trao đổi chất.",
+     "App sẽ tự nhắc bạn nghỉ diet khi phát hiện đứng cân ≥ 3 tuần dù tuân thủ tốt"],
+    ["Tập tạ khi giảm cân: giảm MỠ chứ không giảm CƠ","Willis và cộng sự, 2012 · J Appl Physiol; Sardeli 2018 · phân tích tổng hợp",
+     "Cardio đốt nhiều calo hơn trong buổi tập, nhưng chỉ tập kháng lực (tạ) mới bảo toàn khối cơ khi ăn thâm hụt calo. Giữ cơ đồng nghĩa giữ trao đổi chất cao — chống hiệu ứng yo-yo.",
+     "Lịch của bạn: 3 buổi tạ toàn thân/tuần — xem tab Tập luyện"],
+    ["HIIT: hiệu quả tương đương, tiết kiệm 40% thời gian","Wewege và cộng sự, 2017 · Obesity Reviews — phân tích tổng hợp",
+     "Tập ngắt quãng cường độ cao (HIIT) giảm mỡ tương đương cardio đều (như chạy bộ chậm dài) nhưng tốn ít thời gian hơn ~40%. Kết hợp cả hai — vài buổi Vùng 2 + 1 buổi HIIT — cho kết quả và sức khỏe tim mạch tốt nhất.",
+     "Với bạn ("+age()+" tuổi): HIIT ở nhịp tim "+z4()+" · cardio Vùng 2 ở "+z2()],
+    ["Cân mỗi ngày = giảm cân tốt hơn","Steinberg 2015 · Obesity; Zheng 2015 · tổng quan hệ thống",
+     "Người tự cân hằng ngày giảm cân nhiều hơn đáng kể so với cân thưa hơn, nhờ phản hồi sớm và điều chỉnh kịp thời. Cân nặng dao động 1–2 kg trong ngày do nước — vì vậy app dùng trung bình trượt 7 ngày làm 'cân nặng thật'.",
+     "Xu hướng 7 ngày hiện tại của bạn: "+(trendKg(0)?r1(trendKg(0))+" kg":"chưa đủ dữ liệu")],
+    ["Ngủ đủ để mỡ 'chịu đi'","Nedeltcheva và cộng sự, 2010 · Ann Intern Med",
+     "Cùng một mức thâm hụt calo, nhóm ngủ 5,5 giờ mất ít mỡ hơn 55% và mất nhiều cơ hơn 60% so với nhóm ngủ 8,5 giờ.",
+     "Mục tiêu: 7–9 giờ/đêm, đặc biệt trong giai đoạn giảm cân"]
+  ];
+  document.getElementById("scienceCards").innerHTML=cards.map(function(c){
+    return '<div class="study"><h3>'+c[0]+'</h3><div class="src">'+c[1]+'</div><p>'+c[2]+'</p><div class="me">→ '+c[3]+'</div></div>';
+  }).join("");
+}
+function renderAll(){
+  renderHome();renderWeight();renderFood();renderWorkout();renderPlan();renderScience();
+}
+
+/* ---------- events ---------- */
+document.getElementById("todayLabel").textContent="Hôm nay, "+fmtFull(today());
+// tabs
+document.getElementById("tabs").addEventListener("click",function(e){
+  var b=e.target.closest(".tab");if(!b)return;
+  document.querySelectorAll(".tab").forEach(function(t){t.classList.remove("on")});
+  document.querySelectorAll("main section").forEach(function(s){s.classList.remove("on")});
+  b.classList.add("on");
+  document.getElementById("s-"+b.dataset.t).classList.add("on");
+});
+// onboarding
+function showUI(){
+  var has=!!profile;
+  document.getElementById("onboard").classList.toggle("hidden",has);
+  document.getElementById("mainui").classList.toggle("hidden",!has);
+  if(has){fillProfileForm();renderAll()}
+}
+document.getElementById("ob_save").addEventListener("click",function(){
+  var yob=+document.getElementById("ob_yob").value,h=+document.getElementById("ob_h").value,
+      w=+document.getElementById("ob_w").value,goal=+document.getElementById("ob_goal").value;
+  if(!yob||!h||!w){toast("Vui lòng điền năm sinh, chiều cao, cân nặng");return}
+  profile={sex:document.getElementById("ob_sex").value,yob:yob,h:h,w0:w,
+    goal:goal||w,rate:+document.getElementById("ob_rate").value,
+    tgoal:document.getElementById("ob_tgoal").value,place:"gym",
+    equip:JSON.parse(JSON.stringify(GYM_EQUIP)),foods:JSON.parse(JSON.stringify(DEF_FOODS))};
+  store.set(KP,profile);
+  if(!weights.length){weights.push({d:today(),kg:w});store.set(KW,weights)}
+  showUI();toast("Đã tạo kế hoạch! 🎉");
+});
+function fillProfileForm(){
+  if(!profile)return;
+  document.getElementById("pr_sex").value=profile.sex;
+  document.getElementById("pr_yob").value=profile.yob;
+  document.getElementById("pr_h").value=profile.h;
+  document.getElementById("pr_goal").value=profile.goal;
+  document.getElementById("pr_rate").value=profile.rate;
+  document.getElementById("pr_tgoal").value=profile.tgoal||"cut";
+  document.getElementById("pr_place").value=profile.place||"gym";
+  document.querySelectorAll("#pr_equip input").forEach(function(c){c.checked=!!(profile.equip&&profile.equip[c.dataset.k])});
+  document.querySelectorAll("#pr_foods input").forEach(function(c){c.checked=!!(profile.foods&&profile.foods[c.dataset.k])});
+  togglePlaceUI();
+}
+function togglePlaceUI(){
+  var gym=document.getElementById("pr_place").value==="gym";
+  document.getElementById("equipWrap").classList.toggle("hidden",gym);
+  document.getElementById("gymNote").classList.toggle("hidden",!gym);
+}
+document.getElementById("pr_place").addEventListener("change",togglePlaceUI);
+document.getElementById("pr_save").addEventListener("click",function(){
+  profile.sex=document.getElementById("pr_sex").value;
+  profile.yob=+document.getElementById("pr_yob").value||profile.yob;
+  profile.h=+document.getElementById("pr_h").value||profile.h;
+  profile.goal=+document.getElementById("pr_goal").value||profile.goal;
+  profile.rate=+document.getElementById("pr_rate").value;
+  profile.tgoal=document.getElementById("pr_tgoal").value;
+  profile.place=document.getElementById("pr_place").value;
+  if(profile.place==="gym"){
+    profile.equip=JSON.parse(JSON.stringify(GYM_EQUIP)); // gym = đủ đồ
+  }else{
+    profile.equip={};
+    document.querySelectorAll("#pr_equip input").forEach(function(c){if(c.checked)profile.equip[c.dataset.k]=true});
+  }
+  profile.foods={};
+  document.querySelectorAll("#pr_foods input").forEach(function(c){if(c.checked)profile.foods[c.dataset.k]=true});
+  store.set(KP,profile);renderAll();toast("Đã lưu hồ sơ — lịch tập & thực đơn đã cập nhật");
+});
+// weight
+document.getElementById("w_date").value=today();
+document.getElementById("w_add").addEventListener("click",function(){
+  var d=document.getElementById("w_date").value,kg=+document.getElementById("w_kg").value;
+  if(!d||!kg||kg<25||kg>300){toast("Cân nặng không hợp lệ");return}
+  weights=weights.filter(function(w){return w.d!==d});
+  weights.push({d:d,kg:kg});store.set(KW,weights);
+  document.getElementById("w_kg").value="";
+  renderAll();
+  if(d===today()){
+    // nhập cân sáng xong → mở ngay bản tin kế hoạch của ngày
+    document.querySelector('.tab[data-t="home"]').click();
+    window.scrollTo(0,0);
+    toast("Đã lưu "+kg+" kg — đây là kế hoạch hôm nay của bạn ☀️");
+  }else{
+    toast("Đã lưu "+kg+" kg");
+  }
+});
+document.getElementById("weightLog").addEventListener("click",function(e){
+  var b=e.target.closest(".del");if(!b)return;
+  weights=weights.filter(function(w){return w.d!==b.dataset.wd});
+  store.set(KW,weights);renderAll();
+});
+// food
+document.getElementById("f_date").value=today();
+document.getElementById("f_date").addEventListener("change",renderFood);
+var fs=document.getElementById("f_search"),fl=document.getElementById("f_list");
+fs.addEventListener("input",function(){
+  var q=fs.value.trim().toLowerCase();
+  if(!q){fl.classList.remove("open");return}
+  var norm=function(s){return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\u0111/g,"d")};
+  var qn=norm(q);
+  var hits=DB.filter(function(f){return norm(f[0]).indexOf(qn)>=0}).slice(0,12);
+  fl.innerHTML=hits.length?hits.map(function(f){
+    return '<button data-n="'+f[0].replace(/"/g,"&quot;")+'" data-k="'+f[1]+'"><span>'+f[0]+'</span><span class="k">'+f[1]+' kcal</span></button>';
+  }).join(""):'<div class="empty" style="padding:12px">Không thấy — nhập tay tên món và calo bên dưới</div>';
+  fl.classList.add("open");
+});
+document.addEventListener("click",function(e){if(!e.target.closest(".foodsearch"))fl.classList.remove("open")});
+fl.addEventListener("click",function(e){
+  var b=e.target.closest("button");if(!b)return;
+  document.getElementById("f_name").value=b.dataset.n;
+  document.getElementById("f_kcal").value=b.dataset.k;
+  fs.value="";fl.classList.remove("open");
+});
+document.getElementById("f_add").addEventListener("click",function(){
+  var d=document.getElementById("f_date").value||today();
+  var name=document.getElementById("f_name").value.trim(),kcal=+document.getElementById("f_kcal").value,
+      qty=+document.getElementById("f_qty").value||1;
+  if(!name||!kcal||kcal<0){toast("Nhập tên món và số calo");return}
+  foods.push({d:d,name:name,kcal:kcal,qty:qty});store.set(KF,foods);
+  document.getElementById("f_name").value="";document.getElementById("f_kcal").value="";document.getElementById("f_qty").value=1;
+  renderAll();toast("Đã thêm "+name);
+});
+document.getElementById("foodLog").addEventListener("click",function(e){
+  var b=e.target.closest(".del");if(!b)return;
+  foods.splice(+b.dataset.fi,1);store.set(KF,foods);renderAll();
+});
+// meal plan: log all + shuffle
+document.getElementById("m_log").addEventListener("click",function(){
+  var mn=buildMenu(),d=today(),n=0;
+  mn.meals.forEach(function(m){m.items.forEach(function(it){
+    foods.push({d:d,name:ING[it[0]][0],kcal:ING[it[0]][1],qty:it[1]});n++;
+  })});
+  store.set(KF,foods);renderAll();
+  toast("Đã ghi "+n+" món ("+fmtN(mn.kcal)+" kcal) vào nhật ký hôm nay");
+});
+document.getElementById("m_shuffle").addEventListener("click",function(){
+  var off=((+store.get("gc_menuoff",0))||0)+1;
+  store.set("gc_menuoff",off);renderMenu();
+  var mn=buildMenu();toast("Đã đổi: trưa "+mn.lunch+" · tối "+mn.dinner);
+});
+// treat day toggle
+document.getElementById("t_toggle").addEventListener("click",function(){
+  var d=document.getElementById("f_date").value||today();
+  if(isTreat(d)){treats=treats.filter(function(t){return t!==d})}
+  else{treats.push(d);toast("🎉 Đã đánh dấu ngày treat — cứ tận hưởng!")}
+  store.set(KT,treats);renderAll();
+});
+// workout check-off + watch data entry
+document.getElementById("wk_plan").addEventListener("click",function(e){
+  var wl=e.target.closest(".btn-wlog");
+  if(wl){
+    var key2=wl.dataset.wk,d2=dateOfKey(key2),card=wl.closest(".wday");
+    var mins=+card.querySelector(".wl-min").value||0,
+        kc=+card.querySelector(".wl-kcal").value||0,
+        hr=+card.querySelector(".wl-hr").value||0;
+    if(!mins&&!kc&&!hr){toast("Nhập ít nhất 1 số từ đồng hồ");return}
+    var estimated=false;
+    if(!kc&&mins&&hr){kc=hrKcal(mins,hr);estimated=true} // tự tính từ phút + nhịp tim
+    workouts.forEach(function(w){
+      if(w.d===d2&&w.key===key2){
+        w.actual=true;
+        if(mins)w.mins=mins;
+        if(kc){w.kcal=kc;w.est=estimated}  // calo thật từ đồng hồ, hoặc ước tính từ nhịp tim
+        if(hr)w.hr=hr;
+      }
+    });
+    store.set(KWO,workouts);renderWorkout();renderPlan();renderHome();
+    toast("⌚ Đã lưu số liệu từ đồng hồ");
+    return;
+  }
+  var b=e.target.closest(".btn-done");if(!b)return;
+  var key=b.dataset.wk,d=dateOfKey(key);
+  if(isDone(key)){
+    workouts=workouts.filter(function(w){return !(w.d===d&&w.key===key)});
+  }else{
+    var p=weekPlan().find(function(x){return x.key===key});
+    workouts.push({d:d,key:key,kcal:p?p.kcal:0});
+    toast("💪 Đã ghi nhận buổi tập!");
+  }
+  store.set(KWO,workouts);renderWorkout();renderPlan();renderHome();
+});
+// data export/import/wipe
+document.getElementById("d_export").addEventListener("click",function(){
+  var blob=new Blob([JSON.stringify({profile:profile,weights:weights,foods:foods,workouts:workouts,treats:treats},null,2)],{type:"application/json"});
+  var a=document.createElement("a");a.href=URL.createObjectURL(blob);
+  a.download="giamcan-backup-"+today()+".json";a.click();URL.revokeObjectURL(a.href);
+});
+document.getElementById("d_import").addEventListener("click",function(){document.getElementById("d_file").click()});
+document.getElementById("d_file").addEventListener("change",function(e){
+  var f=e.target.files[0];if(!f)return;
+  var r=new FileReader();
+  r.onload=function(){
+    try{
+      var data=JSON.parse(r.result);
+      if(data.profile)profile=data.profile;
+      if(data.weights)weights=data.weights;
+      if(data.foods)foods=data.foods;
+      if(data.workouts)workouts=data.workouts;
+      if(data.treats)treats=data.treats;
+      store.set(KP,profile);store.set(KW,weights);store.set(KF,foods);store.set(KWO,workouts);store.set(KT,treats);
+      showUI();toast("Đã nhập dữ liệu");
+    }catch(err){toast("File không hợp lệ")}
+  };
+  r.readAsText(f);
+});
+document.getElementById("d_wipe").addEventListener("click",function(){
+  if(confirm("Xóa TOÀN BỘ dữ liệu (hồ sơ, cân nặng, món ăn)? Không thể hoàn tác.")){
+    profile=null;weights=[];foods=[];workouts=[];treats=[];
+    store.set(KP,null);store.set(KW,[]);store.set(KF,[]);store.set(KWO,[]);store.set(KT,[]);
+    showUI();
+  }
+});
+/* Nhận cân nặng qua liên kết: mở app kèm ?kg=76.5 (hoặc #kg=76.5) là tự ghi.
+   Dùng cho tự động hóa: Zepp Life -> Apple Health/Health Connect -> Phím tắt mở link kèm số cân. */
+function handleUrlIntake(){
+  try{
+    var q=new URLSearchParams(location.search.replace(/^\?/,""));
+    var h=new URLSearchParams(location.hash.replace(/^#\??/,""));
+    var raw=q.get("kg")||h.get("kg");
+    if(!raw)return;
+    var kg=parseFloat(String(raw).replace(",","."));
+    var d=q.get("date")||h.get("date")||today();
+    if(!profile){toast("Hãy tạo hồ sơ trước, rồi mở lại liên kết cân nặng");return}
+    if(!(kg>=25&&kg<=300)||!/^\d{4}-\d{2}-\d{2}$/.test(d)){toast("Liên kết cân nặng không hợp lệ");return}
+    kg=Math.round(kg*10)/10;
+    weights=weights.filter(function(w){return w.d!==d});
+    weights.push({d:d,kg:kg});store.set(KW,weights);
+    toast("⚖️ Đã ghi "+kg+" kg (từ liên kết)");
+    try{history.replaceState(null,"",location.pathname)}catch(e2){}
+  }catch(e){}
+}
+handleUrlIntake();
+// re-render charts on theme change
+try{
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",function(){if(profile)renderAll()});
+  new MutationObserver(function(){if(profile)renderAll()}).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+}catch(e){}
+showUI();
+})();
+</script>
+<script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("./sw.js").catch(function(){})})}</script>
+</body>
+</html>
