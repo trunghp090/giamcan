@@ -343,6 +343,12 @@ table.daily tr.today td:last-child{border-radius:0 8px 8px 0}
       <div class="card">
         <h2>Thêm món ăn</h2>
         <label>Ngày</label><input type="date" id="f_date">
+        <label>✨ Nhập nhanh bằng AI — gõ cả bữa ăn bằng lời</label>
+        <div class="row">
+          <div><input type="text" id="ai_text" placeholder="vd: 2 trứng ốp la, 1 tô phở bò, ly cà phê sữa" autocomplete="off"></div>
+          <div style="flex:0"><button class="btn" id="ai_go">Phân tích</button></div>
+        </div>
+        <p class="note" id="ai_hint" style="margin-top:6px"></p>
         <label>Tìm món (gõ để tìm trong ~70 món Việt phổ biến)</label>
         <div class="foodsearch">
           <input type="text" id="f_search" placeholder="phở, cơm tấm, trà sữa…" autocomplete="off">
@@ -476,6 +482,20 @@ table.daily tr.today td:last-child{border-radius:0 8px 8px 0}
           <option value="0.75">0,75 kg/tuần</option><option value="1">1 kg/tuần</option>
         </select>
         <div style="margin-top:14px"><button class="btn" id="pr_save">Lưu hồ sơ</button></div>
+      </div>
+      <div class="card">
+        <h2>✨ Kết nối AI — nhập món ăn bằng lời (tùy chọn)</h2>
+        <div class="row">
+          <div><label>Nhà cung cấp</label>
+            <select id="ai_prov">
+              <option value="openai">ChatGPT (OpenAI) — tính phí, ~vài chục đồng/lần</option>
+              <option value="gemini">Gemini (Google) — có bậc miễn phí</option>
+            </select></div>
+        </div>
+        <label>API key</label>
+        <input type="password" id="ai_key" placeholder="dán API key vào đây" autocomplete="off">
+        <div style="margin-top:12px"><button class="btn" id="ai_save">Lưu kết nối AI</button></div>
+        <p class="note">Lấy key: ChatGPT tại <b>platform.openai.com</b> → API keys (cần nạp tối thiểu 5$) · Gemini tại <b>aistudio.google.com</b> → Get API key (miễn phí). Key chỉ lưu trên máy này, <b>không</b> nằm trong file xuất dữ liệu.</p>
       </div>
       <div class="card">
         <h2>Dữ liệu</h2>
@@ -1479,6 +1499,72 @@ document.getElementById("m_shuffle").addEventListener("click",function(){
   store.set("gc_menuoff",off);renderMenu();
   var mn=buildMenu();toast("Đã đổi: trưa "+mn.lunch+" · tối "+mn.dinner);
 });
+// ===== AI nhập món =====
+var KAI="gc_ai";
+var aiCfg=store.get(KAI,{prov:"openai",key:""});
+var AI_SYS='Bạn là chuyên gia dinh dưỡng Việt Nam. Phân tích mô tả bữa ăn của người dùng và trả về JSON đúng định dạng: {"items":[{"name":"tên món kèm khẩu phần, vd Phở bò (1 tô)","kcal":<calo cho MỘT phần, số nguyên>,"qty":<số phần, số>}]}. Ước lượng calo thực tế theo khẩu phần Việt Nam phổ biến. CHỈ trả về JSON, không giải thích gì thêm.';
+function aiHint(){
+  var el=document.getElementById("ai_hint");
+  el.innerHTML=aiCfg.key?
+    'Đang dùng <b>'+(aiCfg.prov==="openai"?"ChatGPT":"Gemini")+'</b>. AI ước lượng calo — món quan trọng nên kiểm tra lại số trước khi tin hẳn.':
+    'Chưa kết nối AI — vào tab <b>Hồ sơ → Kết nối AI</b> dán API key (Gemini miễn phí). Vẫn nhập tay bình thường được.';
+}
+function aiParse(text){
+  if(aiCfg.prov==="gemini"){
+    return fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key="+encodeURIComponent(aiCfg.key),{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({contents:[{parts:[{text:AI_SYS+"\n\nBữa ăn: "+text}]}],generationConfig:{responseMimeType:"application/json",temperature:0.2}})
+    }).then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.json()})
+      .then(function(d){return JSON.parse(d.candidates[0].content.parts[0].text)});
+  }
+  return fetch("https://api.openai.com/v1/chat/completions",{
+    method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+aiCfg.key},
+    body:JSON.stringify({model:"gpt-4o-mini",temperature:0.2,response_format:{type:"json_object"},
+      messages:[{role:"system",content:AI_SYS},{role:"user",content:text}]})
+  }).then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.json()})
+    .then(function(d){return JSON.parse(d.choices[0].message.content)});
+}
+document.getElementById("ai_go").addEventListener("click",function(){
+  var text=document.getElementById("ai_text").value.trim();
+  if(!text){toast("Gõ mô tả bữa ăn trước đã");return}
+  if(!aiCfg.key){
+    toast("Chưa có API key — vào Hồ sơ → Kết nối AI");
+    document.querySelector('.tab[data-t="profile"]').click();
+    return;
+  }
+  var btn=this;btn.disabled=true;btn.textContent="Đang phân tích…";
+  aiParse(text).then(function(res){
+    var items=(res&&res.items)||(Array.isArray(res)?res:[]);
+    var d=document.getElementById("f_date").value||today(),n=0,sum=0;
+    items.forEach(function(it){
+      var name=String(it.name||"").trim(),kcal=Math.round(+it.kcal||0),qty=+it.qty||1;
+      if(!name||kcal<=0||kcal>5000)return;
+      foods.push({d:d,name:name,kcal:kcal,qty:qty});n++;sum+=kcal*qty;
+      var known=DB.concat(customFoods).some(function(f){return f[0].toLowerCase()===name.toLowerCase()});
+      if(!known){customFoods.unshift([name,kcal]);if(customFoods.length>100)customFoods.pop()}
+    });
+    if(!n)throw new Error("AI không nhận diện được món nào");
+    store.set(KF,foods);store.set(KCF,customFoods);
+    document.getElementById("ai_text").value="";
+    renderAll();
+    toast("✨ Đã thêm "+n+" món · "+fmtN(sum)+" kcal — kiểm tra lại trong nhật ký nhé");
+  }).catch(function(err){
+    var msg=String(err&&err.message||err);
+    if(msg.indexOf("401")>=0||msg.indexOf("403")>=0)toast("API key sai hoặc hết hạn — kiểm tra trong Hồ sơ");
+    else if(msg.indexOf("429")>=0)toast("Hết hạn mức API — thử lại sau hoặc kiểm tra tài khoản");
+    else toast("Lỗi AI: "+msg.slice(0,60));
+  }).finally(function(){
+    btn.disabled=false;btn.textContent="Phân tích";aiHint();
+  });
+});
+document.getElementById("ai_save").addEventListener("click",function(){
+  aiCfg={prov:document.getElementById("ai_prov").value,key:document.getElementById("ai_key").value.trim()};
+  store.set(KAI,aiCfg);aiHint();
+  toast(aiCfg.key?"Đã lưu kết nối AI ✨":"Đã xóa API key");
+});
+document.getElementById("ai_prov").value=aiCfg.prov||"openai";
+document.getElementById("ai_key").value=aiCfg.key||"";
+aiHint();
 // treat day toggle
 document.getElementById("t_toggle").addEventListener("click",function(){
   var d=document.getElementById("f_date").value||today();
