@@ -502,12 +502,13 @@ var store={
   get:function(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return (k in mem)?mem[k]:d}},
   set:function(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){mem[k]=v}}
 };
-var KP="gc_profile",KW="gc_weights",KF="gc_foods",KWO="gc_workouts",KT="gc_treats";
+var KP="gc_profile",KW="gc_weights",KF="gc_foods",KWO="gc_workouts",KT="gc_treats",KCF="gc_customfoods";
 var profile=store.get(KP,null);
 var weights=store.get(KW,[]);   // [{d:'2026-07-13', kg:72.4}]
 var foods=store.get(KF,[]);     // [{d, name, kcal, qty}]
 var workouts=store.get(KWO,[]); // [{d, key, kcal}]
 var treats=store.get(KT,[]);    // ['2026-07-12', ...] ngày ăn ngoài không tracking
+var customFoods=store.get(KCF,[]); // [[tên, kcal], ...] món nhập tay — nhớ để lần sau tìm lại được
 function isTreat(d){return treats.indexOf(d)>=0}
 var DEF_EQUIP={barbell:true,pullup:true,treadmill:true};
 var GYM_EQUIP={barbell:true,dumbbell:true,pullup:true,treadmill:true,bike:true}; // phòng gym: đủ đồ
@@ -1434,7 +1435,7 @@ fs.addEventListener("input",function(){
   if(!q){fl.classList.remove("open");return}
   var norm=function(s){return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\u0111/g,"d")};
   var qn=norm(q);
-  var hits=DB.filter(function(f){return norm(f[0]).indexOf(qn)>=0}).slice(0,12);
+  var hits=customFoods.concat(DB).filter(function(f){return norm(f[0]).indexOf(qn)>=0}).slice(0,12);
   fl.innerHTML=hits.length?hits.map(function(f){
     return '<button data-n="'+f[0].replace(/"/g,"&quot;")+'" data-k="'+f[1]+'"><span>'+f[0]+'</span><span class="k">'+f[1]+' kcal</span></button>';
   }).join(""):'<div class="empty" style="padding:12px">Không thấy — nhập tay tên món và calo bên dưới</div>';
@@ -1453,6 +1454,10 @@ document.getElementById("f_add").addEventListener("click",function(){
       qty=+document.getElementById("f_qty").value||1;
   if(!name||!kcal||kcal<0){toast("Nhập tên món và số calo");return}
   foods.push({d:d,name:name,kcal:kcal,qty:qty});store.set(KF,foods);
+  // món mới nhập tay → nhớ vào danh sách tìm kiếm cho lần sau
+  var normName=name.toLowerCase();
+  var known=DB.concat(customFoods).some(function(f){return f[0].toLowerCase()===normName});
+  if(!known){customFoods.unshift([name,kcal]);if(customFoods.length>100)customFoods.pop();store.set(KCF,customFoods)}
   document.getElementById("f_name").value="";document.getElementById("f_kcal").value="";document.getElementById("f_qty").value=1;
   renderAll();toast("Đã thêm "+name);
 });
@@ -1517,7 +1522,7 @@ document.getElementById("wk_plan").addEventListener("click",function(e){
 });
 // data export/import/wipe
 document.getElementById("d_export").addEventListener("click",function(){
-  var blob=new Blob([JSON.stringify({profile:profile,weights:weights,foods:foods,workouts:workouts,treats:treats},null,2)],{type:"application/json"});
+  var blob=new Blob([JSON.stringify({profile:profile,weights:weights,foods:foods,workouts:workouts,treats:treats,customFoods:customFoods},null,2)],{type:"application/json"});
   var a=document.createElement("a");a.href=URL.createObjectURL(blob);
   a.download="giamcan-backup-"+today()+".json";a.click();URL.revokeObjectURL(a.href);
 });
@@ -1533,7 +1538,8 @@ document.getElementById("d_file").addEventListener("change",function(e){
       if(data.foods)foods=data.foods;
       if(data.workouts)workouts=data.workouts;
       if(data.treats)treats=data.treats;
-      store.set(KP,profile);store.set(KW,weights);store.set(KF,foods);store.set(KWO,workouts);store.set(KT,treats);
+      if(data.customFoods)customFoods=data.customFoods;
+      store.set(KP,profile);store.set(KW,weights);store.set(KF,foods);store.set(KWO,workouts);store.set(KT,treats);store.set(KCF,customFoods);
       showUI();toast("Đã nhập dữ liệu");
     }catch(err){toast("File không hợp lệ")}
   };
@@ -1541,8 +1547,8 @@ document.getElementById("d_file").addEventListener("change",function(e){
 });
 document.getElementById("d_wipe").addEventListener("click",function(){
   if(confirm("Xóa TOÀN BỘ dữ liệu (hồ sơ, cân nặng, món ăn)? Không thể hoàn tác.")){
-    profile=null;weights=[];foods=[];workouts=[];treats=[];
-    store.set(KP,null);store.set(KW,[]);store.set(KF,[]);store.set(KWO,[]);store.set(KT,[]);
+    profile=null;weights=[];foods=[];workouts=[];treats=[];customFoods=[];
+    store.set(KP,null);store.set(KW,[]);store.set(KF,[]);store.set(KWO,[]);store.set(KT,[]);store.set(KCF,[]);
     showUI();
   }
 });
