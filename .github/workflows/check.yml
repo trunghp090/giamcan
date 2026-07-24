@@ -1,0 +1,35 @@
+name: Kiểm tra app trước khi deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Kiểm tra cú pháp JS trong index.html
+        run: |
+          python3 - <<'EOF'
+          import re, subprocess, tempfile, sys
+          html = open("index.html", encoding="utf-8").read()
+          blocks = re.findall(r"<script>(.*?)</script>", html, re.S)
+          assert len(blocks) >= 1, "Không tìm thấy khối <script> nào trong index.html"
+          ok = True
+          for i, b in enumerate(blocks):
+              with tempfile.NamedTemporaryFile("w", suffix=".js", delete=False) as f:
+                  f.write(b); p = f.name
+              r = subprocess.run(["node", "--check", p], capture_output=True, text=True)
+              print(f"script block {i}:", "OK" if r.returncode == 0 else "LỖI CÚ PHÁP")
+              if r.returncode:
+                  print(r.stderr); ok = False
+          sys.exit(0 if ok else 1)
+          EOF
+      - name: Kiểm tra các file PWA bắt buộc
+        run: |
+          for f in manifest.webmanifest sw.js icon-192.png icon-512.png; do
+            test -f "$f" || { echo "THIẾU FILE: $f"; exit 1; }
+          done
+          echo "Đủ file PWA ✓"
